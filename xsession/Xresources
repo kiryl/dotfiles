@@ -1,0 +1,13 @@
+UXTerm*font:		-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-iso10646-1
+
+*VT100.background:	gray10
+*VT100.foreground:	PeachPuff1
+*VT100.colorBDMode:	on
+*VT100.colorBD:		lightgreen
+*VT100.colorULMode:	on
+*VT100.colorUL:		#00AAAA
+*VT100.scrollBar:	false
+*VT100.on3Clicks:	regex "[^\"]*"
+*VT100.on4Clicks:	line
+*VT100.saveLines:	10000
+*VT100.visualBell:	false
