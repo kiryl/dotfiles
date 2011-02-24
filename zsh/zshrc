@@ -1,0 +1,270 @@
+zmodload zsh/complist
+zstyle ':completion:*' completer _expand _complete _prefix
+zstyle ':completion:complete-history:*' completer _history
+zstyle ':completion:*' matcher-list '' 'r:|[._-]=* r:|=*' 'm:{a-z}={A-Z}'
+zstyle ':completion:*' expand suffix
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' insert-unambiguous pattern
+zstyle ':completion:*' keep-prefix true
+zstyle ':completion:*' match-original only
+zstyle ':completion:*' max-errors 0
+zstyle ':completion:*' squeeze-slashes true
+zstyle ':completion:*' verbose 'yes'
+
+#zstyle ':completion:*' file-patterns '*(-/):directories:directories %p:other-files'
+#zstyle ':completion:*:other-files' ignored-patterns '*(-/)'
+zstyle ':completion:*' list-dirs-first true
+zstyle ':completion:*' file-sort name
+
+zstyle ':completion:*' group-order directories
+zstyle ':completion:*:*:-command-:*' group-order builtins functions commands
+zstyle ':completion:*:paths' ambiguous true
+
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*:default' list-grouped true
+zstyle ':completion:*:default' list-packed true
+zstyle ':completion:*:default' list-suffixes true
+zstyle ':completion:*:default' menu yes=long select
+zstyle ':completion:*:default' select-prompt '%S%l (%p)%s'
+zstyle ':completion:*:default' select-scroll 0
+zstyle ':completion:*:default' sort true
+
+zstyle ':completion:*' list false
+zstyle ':completion:*' range '1000:100'
+zstyle ':completion:*' remove-all-dups true
+zstyle ':completion:*:history-words' sort true
+zstyle ':completion:*' stop true
+
+zstyle ':completion:*' ignore-parents parent pwd
+
+zstyle ':completion:*:corrections' format '%B%d (errors: %e)%b'
+zstyle ':completion:*:descriptions' format '%B---- %d ----%b'
+zstyle ':completion:*:messages' format '%B---- %d ----%b'
+zstyle ':completion:*:warnings' format '%BSorry.%b No match for: %d'
+
+zstyle ':completion:*:manuals' separate-sections true
+zstyle ':completion:*:manuals.(^1*)' insert-sections true
+
+zstyle ':completion:*:processes' command 'ps -xuf'
+zstyle ':completion:*:processes' sort false
+zstyle ':completion:*:processes-names' command 'ps xho command'
+
+zstyle ':completion:*:(functions|parameters|association-keys)' ignored-patterns '_*'
+zstyle ':completion:*:complete:-command-::commands' ignored-patterns '*\~' 'gear-command-*'
+zstyle ':completion:*:(ssh|scp):*' tag-order '! users'
+zstyle ':completion:*:cd:*' ignore-parents parent pwd
+
+zstyle ':completion::complete:*' cache-path ~/.zsh/cache
+zstyle ':completion:*' use-cache on
+
+zstyle ':completion:*' use-compctl false
+
+autoload -Uz add-zsh-hook
+autoload -Uz vcs_info
+autoload -Uz zargs
+autoload -Uz zcalc
+autoload -Uz zmv
+
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:*' actionformats '(%F{cyan}%s%F{yellow}:%F{green}%b%F{yellow}|%F{red}%a%f) '
+zstyle ':vcs_info:*' formats '(%F{cyan}%s%F{yellow}:%F{green}%b%f) '
+
+add-zsh-hook precmd vcs_info
+
+__pretty_pwd=
+__set_pwd()
+{
+    local tmp suffix prefix
+    suffix="${(%%)tmp::=%1~}"
+    prefix="${${(%%)tmp::=%~}%/$suffix}"
+    if [[ "$suffix" = "$prefix" ]]; then
+	__pretty_pwd="$suffix"
+	return
+    fi
+    tmp="%$(( $#suffix >= 15 ? 3 : 15 - $#suffix ))<...<$prefix%<<"
+    prefix="${(%%)tmp}"
+    __pretty_pwd="$prefix/$suffix"
+}
+add-zsh-hook precmd __set_pwd
+
+PROMPT='%F{cyan}%n%f@%F{green}%m%f:%l %F{yellow}$__pretty_pwd%f ${vcs_info_msg_0_}%(!.#.$) '
+
+case "$TERM" in
+	xterm*|rxvt*)
+		__update_title () { print -Pn "\e]0;%n@%m:%~  --  $TERM\a" }
+		#__update_title_cmd () { print -Pn "\e]0;%n@%m: ${2//\%/%%}\a" }
+		add-zsh-hook precmd __update_title
+		#add-zsh-hook preexec __update_title_cmd
+		;;
+esac
+
+autoload -Uz incremental-complete-word
+autoload -Uz insert-files
+autoload -Uz predict-on
+zle -N incremental-complete-word
+zle -N insert-files
+zle -N predict-on
+zle -N predict-off
+
+zle -C complete-history complete-word _generic
+
+bindkey -v
+# <BS>
+bindkey    "^H" vi-backward-delete-char
+bindkey -a "^H" vi-backward-delete-char
+# <M-Left/Right>
+bindkey    "^[^[[D" vi-backward-word
+bindkey -a "^[^[[D" vi-backward-word
+bindkey    "^[^[[C" vi-forward-word-end
+bindkey -a "^[^[[C" vi-forward-word-end
+# <C-Left/Right>
+bindkey    "^[Od" vi-backward-blank-word
+bindkey -a "^[Od" vi-backward-blank-word
+bindkey    "^[Oc" vi-forward-blank-word-end
+bindkey -a "^[Oc" vi-forward-blank-word-end
+# <Insert>
+bindkey -a "^[[2~" vi-insert
+# <Esc>
+bindkey -M menuselect '^[' vi-insert
+# <Insert>
+bindkey    "^[[2~" vi-insert
+bindkey -a "^[[2~" vi-insert
+# <Del>
+bindkey    "^[[3~" vi-delete-char
+bindkey -a "^[[3~" vi-delete-char
+# <Home>
+bindkey    "^[[1~" vi-beginning-of-line
+bindkey    "^[[7~" vi-beginning-of-line
+bindkey    "^[[H" vi-beginning-of-line
+bindkey -a "^[[1~" vi-beginning-of-line
+bindkey -a "^[[7~" vi-beginning-of-line
+bindkey -a "^[[H" vi-beginning-of-line
+# <End>
+bindkey    "^[[4~" vi-end-of-line
+bindkey    "^[[8~" vi-end-of-line
+bindkey    "^[[F" vi-end-of-line
+bindkey -a "^[[4~" vi-end-of-line
+bindkey -a "^[[8~" vi-end-of-line
+bindkey -a "^[[F" vi-end-of-line
+# <Up>
+bindkey    "^[[A" history-beginning-search-backward
+bindkey -a "^[[A" history-beginning-search-backward
+# <Down>
+bindkey    "^[[B" history-beginning-search-forward
+bindkey -a "^[[B" history-beginning-search-forward
+# <PageUp>
+bindkey    "^[[5~" vi-backward-word
+bindkey -a "^[[5~" vi-backward-word
+bindkey -M menuselect "^[[5~" vi-backward-word
+# <PageDown>
+bindkey    "^[[6~" vi-forward-word
+bindkey -a "^[[6~" vi-forward-word
+bindkey -M menuselect "^[[6~" vi-forward-word
+# C-<Up/Down>
+bindkey    "^[Oa" vi-up-line-or-history
+bindkey -a "^[Oa" vi-up-line-or-history
+bindkey    "^[Ob" vi-down-line-or-history
+bindkey -a "^[Ob" vi-down-line-or-history
+# <Tab>
+bindkey "^I" complete-word
+bindkey "^D" menu-complete
+# C-X
+bindkey "^X^I" complete-history
+bindkey "^X^R" history-incremental-search-backward
+bindkey "^X^F" history-incremental-search-forward
+bindkey "^Xi" incremental-complete-word
+bindkey '^Xf' insert-files
+bindkey '^X^Z' predict-on
+bindkey '^Xz' predict-off
+# /
+bindkey -M menuselect "^_" accept-and-infer-next-history
+## <CR>
+#bindkey -M menuselect "^M" .accept-line
+## " "
+bindkey -M menuselect "^\\" accept-and-menu-complete
+# C-c
+bindkey -M menuselect "^H" undo
+# undo
+bindkey -a "u" undo
+# redo
+bindkey -a "^R" redo
+# execute
+bindkey -a ":" execute-named-cmd
+# space
+bindkey " " magic-space
+
+bindkey "^P" _history-complete-older
+bindkey "^N" _history-complete-newer
+
+# Insert
+#bindkey "^[[2~" yank
+# Suppr
+#bindkey "^[[3~" delete-char
+# Begin
+#bindkey "^[[1~" beginning-of-line
+# End
+#bindkey "^[[4~" end-of-line
+# Up
+#bindkey "^[[5~" up-line-or-history
+# Down
+#bindkey "^[[6~" down-line-or-history
+
+#bindkey -s "^xs" '\C-e"\C-asu -c "'
+#bindkey -s "^xS" '\C-e"\C-asu - -c "'
+#bindkey -s "^xd" "$(date '+%Y%m%d')"
+#bindkey -s "^xp" "\$(pwd\)/"
+#bindkey -s "^xr" "$(rpm -qf)"
+
+alias df='df -x supermount'
+alias ls='ls --color=auto'
+alias ll='ls -l'
+alias la='ls -a'
+alias lA='ls -A'
+alias lla='ls -la'
+alias llA='ls -lA'
+#alias which='whence -c'
+
+alias mmv='noglob zmv -W'
+alias zcp='zmv -C'
+alias zln='zmv -L'
+
+alias zcalc='noglob zcalc'
+
+alias gcd='git checkout'
+
+alias agu='sudo apt-get update'
+alias agd='sudo apt-get dist-upgrade'
+alias agg='sudo apt-get upgrade'
+alias agi='sudo apt-get install'
+alias agr='sudo apt-get remove'
+alias acs='sudo apt-cache search'
+alias acsh='sudo apt-cache show'
+
+setopt \
+	  allexport \
+	  autopushd \
+	nobgnice \
+	  cbases \
+	  extendedglob \
+	  extendedhistory \
+	noglobcomplete \
+	  histexpiredupsfirst \
+	  histignorealldups \
+	  histignoredups \
+	  histignorespace \
+	  histsavenodups \
+	  histverify \
+	  incappendhistory \
+	  listrowsfirst \
+	  longlistjobs \
+	  monitor \
+	  numericglobsort \
+	  posixbuiltins \
+	  printeightbit \
+	  printexitvalue \
+	  promptsubst \
+	  pushdsilent \
+	  pushdtohome \
+	  rcexpandparam \
+	  shwordsplit
+
