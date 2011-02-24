@@ -2,7 +2,7 @@ MAKEFLAGS += -rR --no-print-directory
 srctree := $(CURDIR)
 export srctree
 
-components ?= proxy
+components ?= git proxy
 
 all: $(components)
 
