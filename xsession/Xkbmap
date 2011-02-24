@@ -1,0 +1,2 @@
+-layout us,ru,by
+-option grp:ctrl_shift_toggle,grp_led:scroll,grp:switch,terminate:ctrl_alt_bksp

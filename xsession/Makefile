@@ -1,1 +1,1 @@
-files := Xresources
+files := Xkbmap Xresources
