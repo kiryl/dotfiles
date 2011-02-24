@@ -1,0 +1,25 @@
+#!/bin/sh -eu
+
+. shell-ip-address
+
+proxy=nokes.nokia.com
+proxy_port=8080
+
+if valid_ipv4 "$1"; then
+	addr="$1"; shift
+else
+	addr="$(resolve -s "$1")"; shift
+fi
+
+port="$1"; shift
+no_proxy=
+
+if ! resolve -s "$proxy" > /dev/null ||
+	ipv4_ip_subnet "$addr" 127.0.0.0/8 ||
+	ipv4_ip_subnet "$addr" 10.0.0.0/8 ||
+	ipv4_ip_subnet "$addr" 172.16.0.0/12 ||
+	ipv4_ip_subnet "$addr" 192.168.0.0/16; then
+	exec socat - TCP:$addr:$port
+else
+	exec socat STDIO PROXY:$proxy:$addr:$port,proxyport=$proxy_port
+fi

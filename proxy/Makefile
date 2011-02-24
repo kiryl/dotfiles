@@ -1,0 +1,2 @@
+destdir := bin
+files	:= proxy
