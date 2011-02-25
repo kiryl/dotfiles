@@ -14,7 +14,7 @@ fi
 port="$1"; shift
 no_proxy=
 
-if ! resolve -s "$proxy" > /dev/null ||
+if ! resolve -s "$proxy" > /dev/null 2>&1 ||
 	ipv4_ip_subnet "$addr" 127.0.0.0/8 ||
 	ipv4_ip_subnet "$addr" 10.0.0.0/8 ||
 	ipv4_ip_subnet "$addr" 172.16.0.0/12 ||
