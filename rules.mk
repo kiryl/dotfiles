@@ -5,6 +5,7 @@ create_symlink	:= $(scriptdir)/create-symlink
 
 ifdef destdir
 destpath	:= $(HOME)/$(destdir)/
+$(shell mkdir -p $(destpath))
 else
 destpath	:= $(HOME)/.
 endif
