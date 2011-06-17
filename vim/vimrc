@@ -84,9 +84,6 @@ autocmd BufReadPost *
 			\   exe "normal g`\"" |
 			\ endif
 
-" Change colorscheme
-colorscheme my
-
 " Unwanted whitespaces
 highlight link ExtraWhitespace Error
 match ExtraWhitespace /\s\+$\| \+\ze\t/
@@ -94,6 +91,9 @@ match ExtraWhitespace /\s\+$\| \+\ze\t/
 " Customize statusline
 set statusline=%<%f%=\ [%1*%M%*%n%R%H%W]\ %-7(%y%)\ %5l,%-5(%c%V%)\ %P
 highlight StatusLine ctermfg=black
+
+" Change colorscheme
+colorscheme my
 
 " spec changelog
 let g:spec_chglog_format="%a %b %d %Y Kirill A. Shutemov <kas@altlinux.org>"
