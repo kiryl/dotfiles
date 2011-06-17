@@ -1,5 +1,8 @@
 [user]
-        name = Kirill A. Shutemov
-        email = kirill@shutemov.name
+	name = Kirill A. Shutemov
+	email = kirill@shutemov.name
 [core]
-        gitproxy = proxy
+	gitproxy = proxy
+	pager = less -R
+[color]
+	ui = auto
