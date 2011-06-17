@@ -1,3 +1,5 @@
+autoload -U compinit
+compinit
 zmodload zsh/complist
 zstyle ':completion:*' completer _expand _complete _prefix
 zstyle ':completion:complete-history:*' completer _history
@@ -237,8 +239,8 @@ alias agd='sudo apt-get dist-upgrade'
 alias agg='sudo apt-get upgrade'
 alias agi='sudo apt-get install'
 alias agr='sudo apt-get remove'
-alias acs='sudo apt-cache search'
-alias acsh='sudo apt-cache show'
+alias acs='apt-cache search'
+alias acsh='apt-cache show'
 
 setopt \
 	  allexport \

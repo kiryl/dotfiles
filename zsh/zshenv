@@ -6,7 +6,8 @@ export EDITOR="/usr/bin/vim"
 export GREP_OPTIONS="--binary-files=without-match --directories=skip --color=auto --devices=skip"
 export LESS="--ignore-case --shift=2 -MM --old-bot"
 export PARINIT=rTbgqR\ B\=\.\,\?_A_a\ Q\=_s\>\|
-export HISTSIZE=99999
-export SAVEHIST=99999
+export HISTSIZE=1000000
+export SAVEHIST=1000000
+export HISTFILE=~/.zsh_history
 export ZLS_COLORS="no=0:fi=0:di=32:ln=36:pi=31:so=33:bd=44;37:cd=44;37:ex=35:mi=NONE:lc=\e[:rc=m:tc=0:sp=0:ec=NONE"
 export RI="-f ansi"
