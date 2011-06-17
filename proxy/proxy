@@ -2,8 +2,11 @@
 
 . shell-ip-address
 
-proxy=nokes.nokia.com
-proxy_port=8080
+http_proxy=proxy-us.intel.com
+http_proxy_port=911
+socks_proxy=proxy-us.intel.com
+socks_proxy_port=1080
+
 
 if valid_ipv4 "$1"; then
 	addr="$1"; shift
@@ -14,12 +17,14 @@ fi
 port="$1"; shift
 no_proxy=
 
-if ! resolve -s "$proxy" > /dev/null 2>&1 ||
+if ! resolve -s "$http_proxy" > /dev/null 2>&1 ||
 	ipv4_ip_subnet "$addr" 127.0.0.0/8 ||
 	ipv4_ip_subnet "$addr" 10.0.0.0/8 ||
 	ipv4_ip_subnet "$addr" 172.16.0.0/12 ||
 	ipv4_ip_subnet "$addr" 192.168.0.0/16; then
-	exec socat - TCP:$addr:$port
+	exec socat STDIO "TCP:$addr:$port"
+#elif [ "$port" = 80 -o "$port" = 443 ]; then
+#	exec socat STDIO "PROXY:$http_proxy:$addr:$port,proxyport=$http_proxy_port"
 else
-	exec socat STDIO PROXY:$proxy:$addr:$port,proxyport=$proxy_port
+	exec socat STDIO "SOCKS:$socks_proxy:$addr:$port,socksport=$socks_proxy_port"
 fi
