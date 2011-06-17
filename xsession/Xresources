@@ -1,4 +1,8 @@
 UXTerm*font:		-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-iso10646-1
+XTerm*font:		-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-iso10646-1
+
+XTerm*eightBitInput:   false
+XTerm*metaSendsEscape: true
 
 *VT100.background:	gray10
 *VT100.foreground:	PeachPuff1
