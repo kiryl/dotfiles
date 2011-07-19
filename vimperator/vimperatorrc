@@ -1,0 +1,5 @@
+" Highlight search
+set hlsearch
+
+" Hide all UI noise
+set toolbars=none
