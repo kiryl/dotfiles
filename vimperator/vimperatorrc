@@ -3,6 +3,3 @@ set hlsearch
 
 " Hide all UI noise
 set toolbars=none
-
-" Complete search, keywords and local files
-set complete=sf
