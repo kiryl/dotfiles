@@ -15,3 +15,5 @@ XTerm*metaSendsEscape: true
 *VT100.on4Clicks:	line
 *VT100.saveLines:	10000
 *VT100.visualBell:	false
+
+XLock.mode:		blank
