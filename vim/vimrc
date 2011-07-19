@@ -101,3 +101,6 @@ colorscheme my
 " spec changelog
 let g:spec_chglog_format="%a %b %d %Y Kirill A. Shutemov <kas@altlinux.org>"
 let g:spec_chglog_prepend=1
+
+" Enter to break line in Normal mode
+map <CR> i<CR><Esc>
