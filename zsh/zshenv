@@ -11,4 +11,4 @@ export SAVEHIST=1000000
 export HISTFILE=~/.zsh_history
 export ZLS_COLORS="no=0:fi=0:di=32:ln=36:pi=31:so=33:bd=44;37:cd=44;37:ex=35:mi=NONE:lc=\e[:rc=m:tc=0:sp=0:ec=NONE"
 export RI="-f ansi"
-export PATH="$PATH:/usr/local/sbin:/usr/sbin:/sbin:$HOME/.cabal/bin"
+export PATH="$PATH:/usr/local/sbin:/usr/sbin:/sbin:$HOME/bin:$HOME/.cabal/bin"
