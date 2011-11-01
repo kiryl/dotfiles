@@ -1,3 +1,5 @@
+all:
+
 include $(srctree)/$(component)/Makefile
 
 scriptdir	:= $(srctree)/scripts
@@ -10,9 +12,11 @@ else
 destpath	:= $(HOME)/.
 endif
 
+files := $(addprefix $(destpath),$(files))
+
 all: $(files)
 
-$(files): $(foreach file,$(files),$(srctree)/$(component)/$(file))
-	@$(create_symlink) $(srctree)/$(component)/$@ $(destpath)$@
+$(files): $(destpath)%: $(srctree)/$(component)/%
+	@$(create_symlink) $< $@
 
-.PHONY: all $(files)
+.PHONY: all
