@@ -2,9 +2,9 @@
 
 . shell-ip-address
 
-http_proxy=proxy-us.intel.com
+http_proxy=proxy-ir.intel.com
 http_proxy_port=911
-socks_proxy=proxy-us.intel.com
+socks_proxy=proxy-ir.intel.com
 socks_proxy_port=1080
 
 
