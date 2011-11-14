@@ -16,4 +16,7 @@ XTerm*metaSendsEscape: true
 *VT100.saveLines:	10000
 *VT100.visualBell:	false
 
-XLock.mode:		blank
+XLock*font:		-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-iso10646-1
+XLock.background:	gray10
+XLock.foreground:	PeachPuff1
+XLock.mode:		loop
