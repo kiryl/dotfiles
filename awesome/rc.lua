@@ -2,6 +2,7 @@ require("awful")
 require("awful.autofocus")
 require("naughty")
 require("shifty")
+require("scratch")
 require("theme")
 print("Entered rc.lua: " .. os.time())
 

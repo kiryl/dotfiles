@@ -32,7 +32,6 @@ globalkeys = awful.util.table.join(
         awful.client.focus.byidx(-1)
         if client.focus then client.focus:raise() end
     end),
-    awful.key({modkey,}, "w", function() mymainmenu:show(true) end),
 
     awful.key({modkey, "Shift"}, "j",
         function() awful.client.swap.byidx(1) end),
@@ -51,6 +50,8 @@ globalkeys = awful.util.table.join(
 
     awful.key({modkey,}, "F12", function() awful.util.spawn(lock) end),
     awful.key({modkey,}, "Return", function() awful.util.spawn(terminal) end),
+    awful.key({modkey}, "`",
+        function () scratch.drop.toggle(terminal, "top", "center", 1, 0.4) end),
     awful.key({modkey, "Control"}, "r", awesome.restart),
     awful.key({modkey, "Shift"}, "q", awesome.quit),
 
@@ -62,21 +63,7 @@ globalkeys = awful.util.table.join(
     awful.key({modkey, "Control"}, "l", function() awful.tag.incncol(-1) end),
     awful.key({modkey,}, "space", function() awful.layout.inc(layouts, 1) end),
     awful.key({modkey, "Shift"}, "space",
-        function() awful.layout.inc(layouts, -1) end),
-
-    awful.key({modkey}, "F1", function()
-        awful.prompt.run({prompt = "Run: "},
-        mypromptbox[mouse.screen],
-        awful.util.spawn, awful.completion.shell,
-        awful.util.getdir("cache") .. "/history")
-        end),
-
-    awful.key({modkey}, "F4", function()
-        awful.prompt.run({prompt = "Run Lua code: "},
-        mypromptbox[mouse.screen],
-        awful.util.eval, nil,
-        awful.util.getdir("cache") .. "/history_eval")
-        end)
+        function() awful.layout.inc(layouts, -1) end)
 )
 
 clientkeys = awful.util.table.join(

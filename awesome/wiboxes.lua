@@ -1,7 +1,6 @@
 mytextclock = awful.widget.textclock({align = "right"})
 mysystray = widget({type = "systray", align = "right"})
 mywibox = {}
-mypromptbox = {}
 mylayoutbox = {}
 mytaglist = {}
 mytaglist.buttons = awful.util.table.join(
@@ -40,8 +39,6 @@ mytasklist.buttons = awful.util.table.join(
         end))
 
 for s = 1, screen.count() do
-    mypromptbox[s] =
-        awful.widget.prompt({layout = awful.widget.layout.leftright})
     mylayoutbox[s] = awful.widget.layoutbox(s)
     mylayoutbox[s]:buttons(awful.util.table.join(
             awful.button({}, 1, function() awful.layout.inc(layouts, 1) end),
@@ -61,7 +58,6 @@ for s = 1, screen.count() do
     mywibox[s].widgets = {
         {
             mytaglist[s],
-            mypromptbox[s],
             layout = awful.widget.layout.horizontal.leftright
         },
         mylayoutbox[s],
