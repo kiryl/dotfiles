@@ -2,7 +2,7 @@ MAKEFLAGS += -rR --no-print-directory
 srctree := $(CURDIR)
 export srctree
 
-components ?= awesome git hasher proxy vim vimperator xsession zsh
+components ?= awesome firefox git hasher proxy vim vimperator xsession zsh
 
 all: $(components)
 

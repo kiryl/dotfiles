@@ -1,0 +1,4 @@
+#!/bin/sh -efu
+
+# fuck flash
+LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libc/memcpy-preload.so /usr/bin/firefox

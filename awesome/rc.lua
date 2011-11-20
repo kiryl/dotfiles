@@ -8,7 +8,7 @@ print("Entered rc.lua: " .. os.time())
 terminal = "x-terminal-emulator"
 editor = os.getenv("EDITOR") or "editor"
 editor_cmd = terminal .. " -e " .. editor
-browser = "x-www-browser"
+browser = "firefox"
 lock = "xlock"
 
 modkey = "Mod4"
