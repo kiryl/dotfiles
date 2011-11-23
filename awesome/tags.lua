@@ -30,7 +30,6 @@ shifty.config.tags = {
         position  = 1,
     },
     web = {
-        layout    = awful.layout.suit.tile.max,
         exclusive = true,
         screen    = 2,
         position  = 2,
