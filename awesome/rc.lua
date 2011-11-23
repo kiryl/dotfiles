@@ -7,8 +7,6 @@ require("theme")
 print("Entered rc.lua: " .. os.time())
 
 terminal = "x-terminal-emulator"
-editor = os.getenv("EDITOR") or "editor"
-editor_cmd = terminal .. " -e " .. editor
 browser = "firefox"
 lock = "xlock"
 
