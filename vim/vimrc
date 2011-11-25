@@ -69,9 +69,6 @@ set nowrap
 " Set fold method
 set foldmethod=marker
 
-" Place case labels under switch() (C language)
-set cinoptions=:0
-
 " Persistent undo
 set undofile
 set undodir=~/.vimundo
