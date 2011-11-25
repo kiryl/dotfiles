@@ -37,7 +37,7 @@ set ignorecase
 set smartcase
 
 " Shell-like completions
-set wildmode=longest:full
+set wildmode=longest,full
 
 " Turn on wildmenu
 set wildmenu
