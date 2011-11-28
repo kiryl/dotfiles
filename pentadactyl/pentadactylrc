@@ -1,0 +1,20 @@
+"" GUI:
+" - separate command line, always on
+" - separate message line
+" - no scroll bars
+" - status bar
+set guioptions=CMcs
+
+" Hide tab line
+set showtabline=never
+
+" Highlight search
+set hlfind
+
+" Incremental search
+set incfind
+
+" Do not close the browser if last tab is closed
+:set! browser.tabs.closeWindowWithLastTab=false
+
+" vim: ft=vim
