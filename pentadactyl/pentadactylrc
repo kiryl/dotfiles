@@ -17,4 +17,7 @@ set incfind
 " Do not close the browser if last tab is closed
 :set! browser.tabs.closeWindowWithLastTab=false
 
+" Pass through for Google Reader
+set passkeys+='google\.com/reader':jk<Space>
+
 " vim: ft=vim
