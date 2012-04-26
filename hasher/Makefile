@@ -1,2 +1,0 @@
-destdir	:= .hasher
-files	:= config

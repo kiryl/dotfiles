@@ -1,9 +1,0 @@
-packager='Kirill A. Shutemov <kas@altlinux.org>'
-known_mountpoints=/proc,/dev/pts
-def_repo="$HOME/repo"
-workdir="$TMPDIR/hasher"
-pkg_build_list="$pkg_build_list vim-console git-core"
-lazy_cleanup=1
-mkdir -p "$TMPDIR/hasher" "$def_repo"
-[ -e "$HOME/hasher" ] ||
-	ln -snf "$TMPDIR/hasher" "$HOME/"
