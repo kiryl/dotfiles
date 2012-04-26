@@ -1,5 +1,5 @@
 destdir := bin
-files	:= proxy shell-ip-address resolve
+files	:= proxy shell-lib resolve
 
 CC = gcc
 

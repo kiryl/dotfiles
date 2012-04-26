@@ -1,0 +1,1295 @@
+#!/bin/sh -efu
+### This file is covered by the GNU General Public License,
+### which should be included with libshell as the file LICENSE.
+### All copyright information are listed in the COPYING.
+
+if [ -z "" ]; then
+__included_shell_single=1
+
+### shell-error
+PROG="${PROG:-${0##*/}}"
+message_time=
+message_time_format=
+message()
+{
+	local prefix=
+	[ -z "$message_time" ] ||
+		prefix="$(date +"${message_time_format:-[%Y-%m-%d %T]} " 2>/dev/null)" ||:
+	printf %s\\n "${prefix}$PROG: $*" >&2
+}
+fatal()
+{
+	message "$@"
+	exit 1
+}
+quiet="${quiet-}"
+verbose="${verbose-}"
+verbose()
+{
+	[ -n "$verbose" ] || return 0
+	message "$@"
+}
+
+### shell-ip-address
+readonly regex_byte='([01]?[0-9][0-9]?|2[0-4][0-9]|25[0-5])'
+readonly regex_ipaddr="$regex_byte(\.$regex_byte){3}"
+readonly __regex_fbyte='([1-9][0-9]?|1[0-9][0-9]|2[01][0-9]|22[0-3])'
+readonly __regex_sbyte='([1]?[0-9][0-9]?|2[0-4][0-9]|25[0-4])'
+readonly __regex_lbyte='([1]?[0-9][0-9]?|2[0-4][0-9]|25[0-4])'
+readonly regex_ipv4="${__regex_fbyte}(\.${__regex_sbyte}){2}\.${__regex_lbyte}"
+valid_ipv4()
+{
+	local ipaddr="$1"
+	local i=0 byte
+	byte="${ipaddr##*.}"
+	ipaddr="${ipaddr%.$byte}"
+	[ "$byte" -gt 0 -a "$byte" -lt 255 ] 2>/dev/null ||
+			return 1
+	while [ $i -lt 3 ]; do
+		byte="${ipaddr##*.}"
+		[ "$byte" != "$ipaddr" ] ||
+			break
+		ipaddr="${ipaddr%.$byte}"
+		[ "$byte" -ge 0 -a "$byte" -lt 255 ] 2>/dev/null ||
+			return 1
+		i=$(($i+1))
+	done
+	[ $i -eq 2 -a \
+	  "$byte" -ne 127 -a "$byte" -gt 0 -a "$byte" -lt 224 ] 2>/dev/null ||
+		return 1
+}
+__ipv4_hex()
+{
+	[ -n "${1-}" ] ||
+		return 2
+	local IFS=.
+	set -- $1
+	local i=0
+	for b; do
+		[ "$b" -ge 0 -a "$b" -le 255 ] 2>/dev/null ||
+			return 2
+		i=$(($i + 1))
+	done
+	[ "$i" -eq 4 ] ||
+		return 2
+	printf '0x'
+	printf '%02x' "$@"
+}
+ipv4_ip_subnet()
+{
+	local ip net prefix
+	ip="${1-}"; shift
+	net="${1-}"; shift
+	prefix="${net##*/}"
+	[ -n "$prefix" -a "$prefix" -ge 0 ] 2>/dev/null ||
+		return 2
+	local hex_addr hex_net hex_mask p
+	hex_addr="$(__ipv4_hex "$ip")" &&
+	hex_net="$(__ipv4_hex "${net%%/*}")" ||
+		return 2
+	p=$((0xFFFFFFFF))
+	hex_mask="$(($p - ($p >> $prefix)))"
+	[ "$(($hex_net & $hex_mask))" -eq "$(($hex_addr & $hex_mask))" ] ||
+		return 1
+}
+ipv4_mask2prefix()
+{
+	local hex_mask
+	hex_mask="$(__ipv4_hex "${1-}")" ||
+		return 2
+	local p i=0 prefix=
+	p=$((~$hex_mask & 0xFFFFFFFF))
+	while [ "$p" -ne 0 ]; do
+		p=$(($p >> 1 & 0xFFFFFFFF))
+		i=$(($i + 1))
+	done
+	prefix=$((32 - $i))
+	[ "$prefix" -ge 0 -a "$prefix" -le 32 ] ||
+		return 1
+	echo "$prefix"
+}
+ipv4_prefix2mask()
+{
+	local len
+	len="${1-}"
+	[ "$len" -ge 0 -a "$len" -le 32 ] 2>/dev/null ||
+		return 1
+	local position=$((0xFFFFFFFF))
+	local mask=$(($position - ($position >> $len)))
+	printf '%s.%s.%s.%s\n' \
+	    "$(($mask >> 24 & 0xFF))" \
+	    "$(($mask >> 16 & 0xFF))" \
+	    "$(($mask >> 8  & 0xFF))" \
+	    "$(($mask       & 0xFF))"
+}
+
+### shell-mail-address
+if [ -n "${shell_mail_address_strict-}" ]; then
+	readonly regex_cctld_active='(a[cdefgilmnoqrstuwxz]|b[abdefghijmnorstwyz]|c[acdfghiklmnoruvxyz]|d[ejkmoz]|e[cegrstu]|f[ijkmor]|g[adefghilmnpqrstuwy]|h[kmnrtu]|i[delmnoqrst]|j[emop]|k[eghimnprwyz]|l[abcikrstuvy]|m[acdeghklmnopqrstuvwxyz]|n[acefgilopruz]|om|p[aefghklnrstwy]|qa|r[eosuw]|s[abcdeghiklmnrtuvyz]|t[cdfghjklmnortvwz]|u[agksyz]|v[aceginu]|w[fs]|ye|z[amw])'
+	readonly regex_cctld_reserved='(um|bl|eh|mf)'
+	readonly regex_cctld_allocated='(bv|gb|pm|sj|so|yt)'
+	readonly regex_cctld_phaseout='(tp|yu)'
+	readonly regex_cctld_deleted='(cs|dd|zr)'
+	readonly regex_gtld='(aero|arpa|asia|biz|cat|com|coop|edu|gov|info|int|jobs|mil|mobi|museum|name|net|org|pro|tel|travel)'
+	regex_tld="($regex_gtld|$regex_cctld_active|$regex_cctld_reserved|$regex_cctld_allocated|$regex_cctld_phaseout)"
+else
+	regex_tld='([a-zA-Z]{2,4}|museum|travel)'
+fi
+readonly regex_domain="([a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*)\.$regex_tld"
+readonly regex_email="([_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*)@($regex_domain)"
+valid_email()
+{
+	local email="$1"
+	printf '%s' "$email" |
+		egrep -iqs "^$regex_email\$" ||
+		return 1
+}
+
+### shell-unittest
+unittest_show_condition="${unittest_show_condition-}"
+setUp() { :; }
+tearDown() { :; }
+setUpTests() { :; }
+tearDownTests() { :; }
+__shell_unit_tests=
+appendTests()
+{
+	while [ "$#" -gt 0 ]; do
+		__shell_unit_tests="$__shell_unit_tests
+$1"
+		shift
+	done
+}
+registerTests()
+{
+	local l="$(sed -ne 's/^\([[:alnum:]_]\+\)().*[[:space:]]*#[[:space:]]*UnitTest/\1/p' "${1:-$0}")"
+	[ -z "$l" ] || appendTests $l
+}
+shouldSkip()
+{
+	exit 2
+}
+assertTrue()
+{
+	local comment= condition
+	[ "$#" -lt 2 ] ||
+		{ comment="$1"; shift; }
+	condition="$1"; shift
+	[ -z "$unittest_show_condition" ] ||
+		comment="${comment:+$comment }($condition) == false"
+	if [ -n "${condition##*[!0-9\-]*}" ]; then
+		[ $condition -ne 0 ] ||
+			return 0
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+	if ! ( eval "$condition" ) >/dev/null; then
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+}
+assertFalse()
+{
+	local comment= condition
+	[ "$#" -lt 2 ] ||
+		{ comment="$1"; shift; }
+	condition="$1"; shift
+	[ -z "$unittest_show_condition" ] ||
+		comment="${comment:+$comment }($condition) == true"
+	if [ -n "${condition##*[!0-9\-]*}" ]; then
+		[ $condition -eq 0 ] ||
+			return 0
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+	if ( eval "$condition" ) >/dev/null; then
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+}
+assertEquals()
+{
+	local comment= expected actual
+	[ "$#" -lt 3 ] ||
+		{ comment="$1"; shift; }
+	expected="$1"; shift
+	actual="$1"; shift
+	if [ "$expected" != "$actual" ]; then
+		[ -z "$unittest_show_condition" ] ||
+			comment="${comment:+$comment }($expected) != ($actual)"
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+}
+assertSame()
+{
+	assertEquals "${@-}"
+}
+assertNotEquals()
+{
+	local comment= expected actual
+	[ "$#" -lt 3 ] ||
+		{ comment="$1"; shift; }
+	expected="$1"; shift
+	actual="$1"; shift
+	if [ "$expected" = "$actual" ]; then
+		[ -z "$unittest_show_condition" ] ||
+			comment="${comment:+$comment }($expected) == ($actual)"
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+}
+assertNotSame()
+{
+	assertNotEquals "${@-}"
+}
+assertNull()
+{
+	local comment= value
+	[ "$#" -lt 2 ] ||
+		{ comment="$1"; shift; }
+	value="$1"; shift
+	if [ -n "$value" ]; then
+		[ -z "$unittest_show_condition" ] ||
+			comment="${comment:+$comment }($value) == ''"
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+}
+assertNotNull()
+{
+	local comment= value
+	[ "$#" -lt 2 ] ||
+		{ comment="$1"; shift; }
+	value="$1"; shift
+	if [ -z "$value" ]; then
+		[ -z "$unittest_show_condition" ] ||
+			comment="${comment:+$comment }($value) != ''"
+		[ -z "$comment" ] ||
+			printf '%s' "$comment"
+		exit 1
+	fi
+}
+messageTest()
+{
+	case "$3" in
+		0) printf '[done]' ;;
+		1) printf '[FAIL]' ;;
+		2) printf '[skip]' ;;
+		*) printf '[status=%s]' $3 ;;
+	esac
+	printf ' (%s) %s\n' "$1" "$2"
+}
+showSummary()
+{
+	if [ "$total" -eq 0 ]; then
+		message "Nothing to do"
+		return
+	fi
+	printf '\n'
+	printf 'tests passed:  %6d %3d%%\n' "$passed" "$((($passed*100)/$total))"
+	printf 'tests failed:  %6d %3d%%\n' "$failed" "$((($failed*100)/$total))"
+	printf 'tests skipped: %6d %3d%%\n' "$skipped" "$((($skipped*100)/$total))"
+	printf 'tests total:   %6d\n\n' "$total"
+}
+runUnitTests()
+{
+	run_or_exit()
+	{
+		"$@" || fatal "$1() fail rc=$?"
+	}
+	run_or_exit setUpTests
+	local IFS=' 	
+'
+	__shell_unit_tests="$(printf '%s\n' "$__shell_unit_tests" |sort -u)"
+	set -- ${__shell_unit_tests-}
+	local retval=0 rc passed=0 failed=0 skipped=0 total="$#"
+	while [ "$#" -gt 0 ]; do
+		run_or_exit setUp
+		rc=0
+		msg="$("$1")" || rc=$?
+		case "$rc" in
+			0) passed=$(($passed+1)) ;;
+			1) failed=$(($failed+1)); retval=1; ;;
+			2) skipped=$(($skipped+1)) ;;
+		esac
+		run_or_exit messageTest "$1" "$msg" "$rc"
+		run_or_exit tearDown
+		shift
+	done
+	run_or_exit showSummary
+	run_or_exit tearDownTests
+	return $retval
+}
+
+### shell-version
+libshell_version=3
+__export_compatibility_string_quote_remove=1
+
+### shell-var
+shell_var_is_yes()
+{
+	[ "$#" -eq 1 ] ||
+		fatal "Usage: shell_var_yes value"
+	case "$1" in
+		[Yy][Ee][Ss]|[Tt][Rr][Uu][Ee]|[Oo][Nn]|[Yy]|1) return 0 ;;
+	esac
+	return 1
+}
+shell_var_is_no()
+{
+	[ "$#" -eq 1 ] ||
+		fatal "Usage: shell_var_no value"
+	case "$1" in
+		[Nn][Oo]|[Ff][Aa][Ll][Ss][Ee]|[Oo][Ff][Ff]|[Nn]|0) return 0 ;;
+	esac
+	return 1
+}
+shell_var_trim()
+{
+	[ "$#" -eq 2 ] ||
+		fatal "Usage: shell_var_trim varname value"
+__shell_var_trim()
+{
+	local r="$1" IFS=' 	
+'
+	set -- $r
+	if [ "$#" -eq 0 ]; then
+		__shell_var_trimo=
+		return
+	fi
+	r="$1${r#*$1}"
+	shift $(($#-1))
+	r="${r%$1*}$1"
+	__shell_var_trimo="$r"
+}
+	local __shell_var_trimo
+	__shell_var_trim "$2"
+	eval "$1=\"\$__shell_var_trimo\""
+}
+shell_var_unquote()
+{
+	[ "$#" -eq 2 ] ||
+		fatal "Usage: shell_var_unquote varname value"
+__shell_var_unquote()
+{
+	local o="$1"
+	if [ -z "${o##*\'}${o%%\'*}" ]; then
+		o="${o#\'}" o="${o%\'}"
+	elif [ -z "${o##*\"}${o%%\"*}" ]; then
+		o="${o#\"}" o="${o%\"}"
+	fi
+	__shell_var_unquoteo="$o"
+}
+	local __shell_var_unquoteo
+	__shell_var_unquote "$2"
+	eval "$1=\"\$__shell_var_unquoteo\""
+}
+
+### shell-source
+__shell_source_find()
+{
+	local r f IFS=:
+	r="$1"; shift
+	f="$1"; shift
+	if [ -n "${f##*/*}" ]; then
+		set -- ${PATH-}
+		while [ "$#" -gt 0 ]; do
+			if [ -e "$1/$f" ]; then
+				f="$1/$f"
+				break
+			fi
+			shift
+		done
+	fi
+	[ -e "$f" ] || return 1
+	eval "$r=\"\$f\""
+}
+source_if_exists()
+{
+	local v f
+	f="$1";	shift
+	! __shell_source_find v "$f" || [ ! -f "$v" ] || . "$v"
+}
+source_if_notempty()
+{
+	local v f
+	f="$1"; shift
+	! __shell_source_find v "$f" || [ ! -s "$v" ] || . "$v"
+}
+source_if_executable()
+{
+	local v f
+	f="$1"; shift
+	! __shell_source_find v "$f" || [ ! -x "$v" ] || . "$v"
+}
+
+### shell-string
+fill_mask()
+{
+__fill_mask()
+{
+	local m=
+	while :; do
+		case $((${#1} - ${#m})) in
+			0) break ;;
+			1) m="$m?" ;;
+			2) m="$m??" ;;
+			3) m="$m???" ;;
+			4) m="$m????" ;;
+			5) m="$m?????" ;;
+			6) m="$m??????" ;;
+			7) m="$m???????" ;;
+			8) m="$m????????" ;;
+			9) m="$m?????????" ;;
+			*) m="$m??????????" ;;
+		esac
+	done
+	__fill_masko="${m#$2}"
+}
+	local __fill_masko
+	__fill_mask "$2" "${3:-?}"
+	eval "$1=\$__fill_masko"
+}
+
+### shell-args
+opt_check_read()
+{
+	local value
+	[ -r "$2" ] &&
+	value="$(readlink -ev "$2")" ||
+		fatal "$1: $2: file not available."
+	printf %s "$value"
+}
+opt_check_exec()
+{
+	local value
+	[ -f "$2" -a -x "$2" ] &&
+	value="$(readlink -ev "$2")" ||
+		fatal "$1: $2: file not executable."
+	printf %s "$value"
+}
+opt_check_dir()
+{
+	local value
+	[ -d "$2" -a -x "$2" ] &&
+	value="$(readlink -ev "$2")" ||
+		fatal "$1: $2: directory not available."
+	printf %s "$value"
+}
+opt_check_number()
+{
+	[ -n "${2##0*}" -a -n "${2##*[!0-9]*}" ] &&
+	[ "$2" -gt 0 ] 2>/dev/null ||
+		fatal "$1: $2: invalid number."
+	printf %s "$2"
+}
+show_usage()
+{
+	[ -z "$*" ] || message "$*"
+	echo "Try \`$PROG --help' for more information." >&2
+	exit 1
+}
+show_help()
+{
+	fatal "show_help(): Undefined function"
+}
+print_version()
+{
+	fatal "print_version() Undefined function"
+}
+readonly getopt_common_opts="q,v,V,h"
+readonly getopt_common_longopts="quiet,verbose,version,help"
+parse_common_option()
+{
+	case "$1" in
+		-h|--help) show_help
+			;;
+		-q|--quiet) quiet=-q; verbose=
+			;;
+		-v|--verbose) verbose=-v; quiet=
+			;;
+		-V|--version) print_version "$PROG"
+			;;
+		*) fatal "Unrecognized option: $1"
+			;;
+	esac
+}
+
+### shell-cmdline
+cmdline_foreach()
+{
+	local l h c= m=
+	l="$1"; shift
+	h="$1"; shift
+	__is_set() {
+		[ $(( $1 & $2 )) -eq $2 ]
+	}
+	fill_mask m "$l"
+	local state=$((0x00))
+	local VALUE=$((0x02))
+	local EQUAL=$((0x04))
+	local QUOTE=$((0x10))
+	local n= v=
+	while [ -n "$l" ]; do
+		c="${l%$m}"
+		case "$c" in
+			'"')
+				__is_set $state $QUOTE &&
+					state=$(($state ^ $QUOTE)) ||
+					state=$(($state | $QUOTE))
+				;;
+			' ')
+				if __is_set $state $QUOTE; then
+					v="$v$c"
+				else
+					__is_set $state $EQUAL ||
+						v=1
+					$h "$n" "$v" ||
+						break
+					n= v=
+					state=$((0x00))
+				fi
+				;;
+			'=')
+				! __is_set $state $VALUE ||
+					v="$v$c"
+				state=$(($state | $VALUE | $EQUAL))
+				;;
+			*)
+				if ! __is_set $state $VALUE; then
+					[ "$c" != '-' ] || c='_'
+					n="$n$c"
+				else
+					v="$v$c"
+				fi
+				;;
+		esac
+		l="${l#?}"
+		m="${m#?}"
+	done
+	[ -z "$n" ] ||
+		$h "$n" "$v" ||:
+	unset __is_set
+}
+cmdline_get()
+{
+	local __cmdline __retv __getn
+	__retv="$1"; shift
+	__getn="$1"; shift
+	if [ "$#" -eq 0 ]; then
+		read __cmdline < /proc/cmdline
+	else
+		__cmdline="$1"
+	fi
+	local c m l="$__getn"
+	__getn=
+	fill_mask m "$l"
+	while [ -n "$l" ]; do
+		c="${l%$m}"
+		[ "$c" != '-' ] || c='_'
+		__getn="$__getn$c"
+		l="${l#?}"
+		m="${m#?}"
+	done
+	unset c m l
+	__getval()
+	{
+		[ "$1" != "$__getn" ] || eval "$__retv=\"\$2\""
+	}
+	cmdline_foreach "$__cmdline" __getval
+	unset __getval
+}
+
+### shell-ini-config
+shell_ini_config_comment='#'
+ini_config_get()
+{
+	local fn section var sect= str eof= n v
+	fn="$1" section="$2" var="$3"
+	while [ -z "$eof" ]; do
+		read -r str || eof=1
+		case "$str" in
+			"["*"]")
+				[ "$str" != "[$section]" ] ||
+					sect=1
+				;;
+			"$shell_ini_config_comment"*|'')
+				;;
+			*)
+				if [ -n "$sect" ]; then
+					shell_var_trim n "${str%%=*}"
+					if [ "$n" = "$var" ]; then
+						shell_var_trim v "${str#*=}"
+						printf '%s\n' "$v"
+						break
+					fi
+				fi
+				;;
+		esac
+	done < "$fn"
+}
+ini_config_set()
+{
+	local fn fn_tmp section var value sect= don= str eof= n v
+	fn="$1" section="$2" var="$3" value="$4"
+	fn_tmp="$(mktemp "$fn.XXXXXX")"
+	while [ -z "$eof" ]; do
+		read -r str || eof=1
+		case "$str" in
+			"[$section]")
+				sect=2
+				printf '%s\n' "$str"
+				;;
+			"["*"]")
+				if [ "$sect" = 2 -a -z "$don" ]; then
+					printf '\t%s\n' "$var = $value"
+					don=1
+				fi
+				sect=1
+				printf '%s\n' "$str"
+				;;
+			"$shell_ini_config_comment"*|'')
+				[ -n "$str" ] &&
+					printf ${sect:+'\t'}'%s\n' "$str" ||
+					printf '\n'
+				;;
+			*)
+				shell_var_trim n "${str%%=*}"
+				shell_var_trim v "${str#*=}"
+				if [ "$sect" = 2 -a "$n" = "$var" ]; then
+					[ -n "$don" ] ||
+						printf '\t%s\n' "$n = $value"
+					don=1
+					continue
+				fi
+				printf '\t%s\n' "$n = $v"
+				;;
+		esac
+		if [ -n "$eof" -a -z "$don" ]; then
+			[ "$sect" = 2 ] ||
+				printf '[%s]\n' "$section"
+			printf '\t%s\n' "$var = $value"
+		fi
+	done < "$fn" > "$fn_tmp"
+	mv -f -- "$fn_tmp" "$fn"
+}
+__ini_config_del_comment()
+{
+	local fn_tmp sect= str eof= n v
+	fn_tmp="$(mktemp "$fn.XXXXXX")"
+	while [ -z "$eof" ]; do
+		read -r str || eof=1
+		case "$str" in
+			"["*"]")
+				sect=1
+				[ "$str" != "[$section]" ] ||
+					sect=2
+				printf '%s\n' "$str"
+				;;
+			"$shell_ini_config_comment"*|'')
+				[ -n "$str" ] &&
+					printf ${sect:+'\t'}'%s\n' "$str" ||
+					printf '\n'
+				;;
+			*)
+				shell_var_trim n "${str%%=*}"
+				shell_var_trim v "${str#*=}"
+				[ "$sect" = 2 ] &&
+					__ini_config_action "$n" "$v" ||
+					printf '\t%s\n' "$n = $v"
+				;;
+		esac
+	done < "$fn" > "$fn_tmp"
+	mv -f -- "$fn_tmp" "$fn"
+	unset __ini_config_action
+}
+ini_config_del()
+{
+	local fn="$1" section="$2" var="${3-}"
+	__ini_config_action()
+	{
+		[ -z "$var" -o "$1" = "$var" ] ||
+			printf '\t%s\n' "$1 = $2"
+	}
+	__ini_config_del_comment
+}
+ini_config_comment()
+{
+	local fn="$1" section="$2" var="${3-}"
+	__ini_config_action()
+	{
+		if [ -n "$var" -a "$1" != "$var" ]; then
+			printf '\t%s\n' "$1 = $2"
+			return
+		fi
+		printf '\t%s\n' "$shell_ini_config_comment $1 = $2"
+	}
+	__ini_config_del_comment
+}
+
+### shell-quote
+quote_sed_regexp_variable()
+{
+	local __quote_set_regexp_variable_var __quote_set_regexp_variable_out
+	__quote_set_regexp_variable_var="$1"; shift
+	__quote_set_regexp_variable_out="$*"
+	if [ -z "${__quote_set_regexp_variable_out##*[\[\].*&^\$\\\\/]*}" ]; then
+		__quote_set_regexp_variable_out="$(printf %s "$__quote_set_regexp_variable_out" |
+				sed -e 's/[].*&^$[\/]/\\&/g')" ||
+			return 1
+	fi
+	eval "$__quote_set_regexp_variable_var=\"\$__quote_set_regexp_variable_out\""
+}
+quote_sed_regexp()
+{
+	local result
+	quote_sed_regexp_variable result "$@"
+	printf %s "$result"
+}
+quote_shell_variable()
+{
+	local __quote_shell_variable_var __quote_shell_variable_out
+	__quote_shell_variable_var="$1"; shift
+	__quote_shell_variable_out="$*"
+	if [ -z "${__quote_shell_variable_out##*[\"\$\`\\\\]*}" ]; then
+		__quote_shell_variable_out="$(printf %s "$__quote_shell_variable_out" |
+				sed -e 's/[\"$\`\\]/\\&/g')" ||
+			return 1
+	fi
+	eval "$__quote_shell_variable_var=\"\$__quote_shell_variable_out\""
+}
+quote_shell()
+{
+	local result
+	quote_shell_variable result "$@"
+	printf %s "$result"
+}
+quote_shell_args()
+{
+__quote_shell_args() {
+	local m= r= c= l="$1"
+	local bq= dq= sq=
+	__quote_shell_args_toggle() {
+		eval [ -n \"\$$1\" ] && eval "$1=" || eval "$1=\$$2"
+	}
+	fill_mask m "$l"
+	while [ -n "$l" ]; do
+		c="${l%$m}"
+		l="${l#?}"
+		m="${m#?}"
+		case "$c" in
+			\")
+				[ -n "$bq$sq" ] || __quote_shell_args_toggle dq c
+				;;
+			\')
+				[ -n "$bq$dq" ] || __quote_shell_args_toggle sq c
+				;;
+			\$|\`)
+				[ -n "$bq$sq" ] || bq=\\
+				;;
+			\\)
+				if [ -z "$sq" ]; then
+					if [ -z "$bq" ]; then
+						bq=\\
+						continue
+					else
+						r="$r\\"
+						bq=
+					fi
+				fi
+				;;
+			[!A-Za-z0-9_\ \	])
+				[ -n "$bq$dq$sq" ] || bq=\\
+				;;
+		esac
+		r="$r$bq$c"
+		bq=
+	done
+	[ -z "$bq$dq$sq" ] ||
+		{ message "unmatched character ($bq$dq$sq) found"; return 1; }
+	__quote_shell_args_out="$r"
+}
+	local __quote_shell_args_out= __quote_shell_args_rc=0
+	__quote_shell_args "$2" ||
+		__quote_shell_args_rc=1
+	eval "$1=\"\$__quote_shell_args_out\""
+	unset __quote_shell_args __quote_shell_args_toggle
+	return $__quote_shell_args_rc
+}
+if [ -n "${__export_compatibility_string_quote_remove-}" ]; then
+string_quote_remove()
+{
+	local out="$1"
+	if [ -z "${1##*\'}${1%%\'*}" ]; then
+		out="${1#\'}"
+		out="${out%\'}"
+	elif [ -z "${1##*\"}${1%%\"*}" ]; then
+		out="${1#\"}"
+		out="${out%\"}"
+	fi
+	printf %s "$out"
+}
+fi # __export_compatibility_string_quote_remove
+
+### shell-signal
+__shell_signal_handlers=
+signal_handler()
+{
+	local action real_action sign
+	action="$1"; shift
+	for sign; do
+		sign="${sign#SIG}"
+		case "$action" in
+			SIG_IGN)
+				eval "unset __signal_handlers_$sign"
+				real_action=:
+				trap : "$sign"
+				;;
+			SIG_DFL)
+				eval "unset __signal_handlers_$sign"
+				real_action=-
+				trap - "$sign"
+				;;
+			*)
+				eval "handler=\"\${__signal_handlers_$sign-} \$action;\""
+				trap "$handler" "$sign"
+				eval "__signal_handlers_$sign=\"\$handler\""
+				;;
+		esac
+	done
+}
+__cleanup_handler_name=
+set_cleanup_handler()
+{
+	__cleanup_handler_name="${1-}"
+	__cleanup_handler()
+	{
+		trap - EXIT
+		[ -z "${__cleanup_handler_name-}" ] ||
+			"$__cleanup_handler_name" "$1" ||:
+		exit "$1"
+	}
+	signal_handler '__cleanup_handler $?' EXIT
+	signal_handler '__cleanup_handler  1' HUP PIPE INT QUIT TERM
+}
+unset_cleanup_handler()
+{
+	signal_handler SIG_DFL EXIT HUP PIPE INT QUIT TERM
+	__cleanup_handler_name=
+}
+
+### shell-run
+run_if_executable()
+{
+	local v f
+	f="$1"; shift
+	! __shell_source_find v "$f" || [ ! -x "$v" ] || "$v" "$@"
+}
+RUN_SCRIPTS_EXCLUDE='*.rpm* *.swp *,v *~ *.\#'
+SCRIPT_ERROR_FATAL=${SCRIPT_ERROR_FATAL:-false}
+run_scripts()
+{
+	[ "$#" -ge 1 ] ||
+		fatal "Usage: run_scripts <dir> [args]"
+	local p f d rc=0
+	d="$(opt_check_dir "dir" "$1")"; shift
+	for f in $(find -L "$d" -mindepth 1 -maxdepth 1 -type f | sort); do
+		for p in $RUN_SCRIPTS_EXCLUDE; do
+			[ -n "${f##$p}" ] ||
+				continue 2
+		done
+		run_if_executable "$f" "$@" || rc=1
+		[ "$SCRIPT_ERROR_FATAL" = true ] &&
+			[ $rc -gt 0 ] && return $rc
+	done
+	return $rc
+}
+
+### shell-config
+__shell_config_comment='#'
+shell_config_get()
+{
+	[ "$#" -ge 2 -a "$#" -le 3 ] ||
+		fatal "Usage: shell_config_get file name [delim]"
+	local file="$1" name="$2" delim="${3-=}"
+	[ -s "$file" ] ||
+		return 0
+	quote_sed_regexp_variable name "$name"
+	sed -n -e "s/^[[:space:]]*$name$delim//p" -- "$file"
+}
+shell_config_set()
+{
+	[ "$#" -ge 3 -a "$#" -le 5 ] ||
+		fatal "Usage: shell_config_set file name value [read-delim [write-delim]]"
+	local file="$1" name="$2" value="$3" r_delim="${4-=}" w_delim="${5-=}"
+	local n v nv= created=
+	if [ ! -f "$file" ]; then
+		if [ ! -w "${file%/*}" ]; then
+			message "${file%/*}: not writable."
+			return 1
+		fi
+		touch -- "$file" ||
+			return 1
+		created=1
+	fi
+	if [ -z "$created" ]; then
+		quote_sed_regexp_variable n "$name"
+		if v="$(grep -m1 "^[[:space:]]*$n$r_delim" -- "$file" 2>/dev/null)"; then
+			if [ "${v#*$name$r_delim}" != "$value" ]; then
+				quote_sed_regexp_variable nv "$w_delim$value"
+				sed -i -e "s/^[[:space:]]*$n$r_delim.*/$n$nv/" -- "$file"
+			fi
+			return
+		fi
+		if [ -n "${__shell_config_comment-}" ] &&
+		   v="$(grep -m1 "^[[:space:]]*${__shell_config_comment:-#}[[:space:]]*$n$r_delim" -- "$file" 2>/dev/null)"; then
+			quote_sed_regexp_variable v "$v"
+			quote_sed_regexp_variable nv "$w_delim$value"
+			sed -i -e "s/^$v\$/$n$nv/" -- "$file"
+			return
+		fi
+	fi
+	printf '%s\n' "$name$w_delim$value" >> "$file"
+}
+shell_config_del()
+{
+	[ "$#" -ge 2 -a "$#" -le 3 ] ||
+		fatal "Usage: shell_config_del file name [delim]"
+	local file="$1" name="$2" delim="${3-=}"
+	[ -s "$file" ] ||
+		return 0
+	quote_sed_regexp_variable name "$name"
+	sed -i -e "/^[[:space:]]*$name$delim/d" -- "$file"
+}
+shell_config_comment()
+{
+	[ "$#" -ge 2 -a "$#" -le 3 ] ||
+		fatal "Usage: shell_config_comment file name [delim]"
+	local file="$1" name="$2" delim="${3-=}"
+	[ -s "$file" ] ||
+		return 0
+	quote_sed_regexp_variable name "$name"
+	sed -i -e "s/^[[:space:]]*$name$delim.*/${__shell_config_comment:-#}&/" -- "$file"
+}
+
+### shell-getopt
+GETOPT_ALLOW_UNKNOWN=
+GETOPT_ALLOW_ABBREV=1
+GETOPT_ALLOW_ALTERNATIVE=
+OPTERR=1
+OPTTYP=
+OPTUKN=
+OPTOPT=
+OPTARG=
+OPTIND=1
+OPTOFS=
+getoptex()
+{
+	[ "$#" -gt 0 ] ||
+		return 1
+	[ "${OPTIND-}" -gt 0 ] 2>/dev/null ||
+		OPTIND=1
+	[ "$OPTIND" -lt "$#" ] ||
+		return 1
+	getoptex_badarg()
+	{
+		[ -z "${OPTERR-}" ] ||
+			message "option requires an argument -- '$OPTOPT'"
+		OPTARG="$OPTOPT"
+		OPTOPT='?'
+	}
+	getoptex_argument()
+	{
+		[ "$OPTTYP" = ':' ] ||
+			return 0
+		OPTARG="$1"
+		[ -n "$OPTARG" -a -n "${OPTARG%%-*}" ] ||
+			{ getoptex_badarg; return 1; }
+		OPTARG="${1#[#]}"
+		OPTIND=$(($OPTIND+1))
+	}
+	getoptex_option_long()
+	{
+		local arg="$1" v p
+		for p in '--' ${GETOPT_ALLOW_ALTERNATIVE:+'-'}; do
+			if [ -n "${GETOPT_ALLOW_ABBREV-}" ]; then
+				arg="${1%%=*}" v="${1#*=}" o="$p$OPTOPT"
+				if [ -z "${o##$arg*}" ]; then
+					[ "$arg" != "$v" ] &&
+						arg="$o=$v" ||
+						arg="$o"
+					unset o v
+				fi
+			fi
+			case "$arg" in
+				$p$OPTOPT=*)
+					[ -n "$OPTTYP" ] ||
+						{ getoptex_badarg; return 3; }
+					OPTARG="${arg#$p$OPTOPT=}"
+					return 1
+					;;
+				$p$OPTOPT)
+					getoptex_argument "$2" ||
+						return 3
+					return 1
+					;;
+			esac
+		done
+	}
+	getoptex_option_short()
+	{
+		local o="-${1#-${OPTOFS-}}"
+		case "$o" in
+			-$OPTOPT)
+				OPTOFS=
+				getoptex_argument "$2" ||
+					return 3
+				return 1
+				;;
+			-$OPTOPT*)
+				if [ -z "$OPTTYP" ]; then
+					OPTOFS="${OPTOFS-}?"
+					OPTIND=$(($OPTIND-1))
+				else
+					OPTOFS=
+					OPTARG="${o#-$OPTOPT}"
+				fi
+				return 1
+				;;
+		esac
+	}
+	local optlist="${1#;}" value=
+	shift $OPTIND
+	[ "$#" -lt 2 ] ||
+		value="#$2"
+	OPTTYP=
+	if [ "$1" = '--' ]; then
+		OPTTYP='--'
+		OPTIND=$(($OPTIND+1))
+	elif [ "$1" != '-' -a "$1" != "${1#-}" ]; then
+		OPTIND=$(($OPTIND+1))
+		local cmd argtype
+		for opt in $optlist; do
+			OPTOPT="${opt%[;.:]}"
+			OPTARG=
+			OPTTYP=
+			[ "$OPTTYP" = ';' ] ||
+				OPTTYP="${opt#$OPTOPT}"
+			cmd=long
+			[ "${#OPTOPT}" -gt 1 ] ||
+				cmd=short
+			getoptex_option_$cmd "$1" "$value" ||
+				return $(($?-1))
+		done
+		OPTOPT='?'
+		OPTARG=
+		if [ -n "${GETOPT_ALLOW_UNKNOWN-}" ]; then
+			local q_arg
+			quote_shell_variable q_arg "$1"
+			OPTUKN="${OPTUKN-} \"$q_arg\""
+			return 0
+		fi
+		message "unrecognized option '$1'"
+		return 2
+	fi
+	OPTOPT='?'
+	OPTARG=
+	return 1
+}
+getopts()
+{
+	local l="$1"
+	local m=
+	local r=
+	fill_mask m "$l"
+	while [ -n "$l" ]; do
+		r="${r:+"$r "}${l%$m}"
+		l="${l#?}"
+		m="${m#?}"
+		if [ "${l#[:.;]}" != "$l" ]; then
+			r="$r${l%$m}"
+			l="${l#?}"
+			m="${m#?}"
+		fi
+	done
+	shift
+	getoptex "$r" "$@" ||
+		return $?
+}
+__getsubopt_arguments=
+getsubopt()
+{
+	local l="$2"
+	if [ -z "$__getsubopt_arguments" ]; then
+		local ch m=
+		fill_mask m "$l"
+		__getsubopt_arguments='--'
+		while [ -n "$l" ]; do
+			ch="${l%$m}"
+			l="${l#?}"
+			m="${m#?}"
+			case "$ch" in
+				,) ch=' --' ;;
+				[\\\\\`\$\"\ ]) ch="\\$ch" ;;
+			esac
+			__getsubopt_arguments="$__getsubopt_arguments$ch"
+		done
+	fi
+	local GETOPT_ALLOW_ABBREV=
+	eval getoptex "\"$1\"" "$__getsubopt_arguments" ||
+		return $?
+}
+GETOPT_POSIXLY_CORRECT=
+getopt()
+{
+	__getopt_version()
+	{
+		cat <<-EOF
+		$PROG version $libshell_version
+		Written by Alexey Gladkov <gladkov.alexey@gmail.com>
+		Copyright (C) 2008  Alexey Gladkov <gladkov.alexey@gmail.com>
+		This is free software; see the source for copying conditions.  There is NO
+		warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+		EOF
+	}
+	__getopt_usage()
+	{
+		cat <<-EOF
+		Try \`$PROG --help' for more information.
+		EOF
+	}
+	__getopt_help()
+	{
+		cat <<-EOF
+		Usage: $PROG optstring parameters
+		   or: $PROG [options] [--] optstring parameters
+		   or: $PROG [options] -o|--options optstring [options] [--] parameters
+		Options ignored:
+		  -s, --shell=shell            Set shell quoting conventions;
+		  -u, --unqote                 Do not quote the output;
+		Options:
+		  -a, --alternative            Allow long options starting with single -;
+		  -l, --longoptions=longopts   Long options to be recognized;
+		  -n, --name=progname          The name under which errors are reported;
+		  -o, --options=optstring      Short options to be recognized;
+		  -q, --quiet                  Disable error reporting;
+		  -Q, --quiet-output           No normal output;
+		  -T, --test                   Test for getopt version;
+		  -V, --version                Output version information;
+		  -h, --help                   This small usage guide.
+		Report bugs to http://bugzilla.altlinux.org/
+		EOF
+	}
+	local PROG='getopt' OPTIND=1 OPTERR=1 prg= opts= lopts= quiet_output= alt= order= rc
+	local GETOPT_POSIXLY_CORRECT
+	while getoptex 'a alternative h help l: longoptions: n: name: o: options: q quiet Q quiet-output s shell T test u unquoted V version' "$@" && rc=0 || rc=$?; do
+		case "$rc" in
+			2) __getopt_usage; return 2 ;;
+			1) break ;;
+		esac
+		case "$OPTOPT" in
+			a|alternative) alt=1 ;;
+			n|name) prg="$OPTARG" ;;
+			o|options) opts="$OPTARG " ;;
+			l|longoptions) lopts="$OPTARG" ;;
+			q|quiet) OPTERR= ;;
+			Q|quiet-output) quiet_output=1 ;;
+			T|test) return 4 ;;
+			V|version)
+				__getopt_version
+				return 0
+				;;
+			h|help)
+				__getopt_help
+				return 2
+				;;
+		esac
+	done
+	shift $(($OPTIND-1))
+	set -- "$@"
+	if [ -z "${opts##+*}" ]; then
+		opts="${opts#+}"
+		GETOPT_POSIXLY_CORRECT=1
+	elif [ -z "${opts##-*}" ]; then
+		opts="${opts#-}"
+		order=1
+	fi
+	if [ -z "$opts" ]; then
+		if [ "$#" -gt 1 -a "${1#-}" = "$1" -a "$1" != '--' ]; then
+			opts="$1"
+			shift
+		else
+			message "$PROG: missing optstring argument"
+			__getopt_usage
+			return 2
+		fi
+	fi
+	opts="${lopts:+$lopts,}$opts"
+	while :; do
+		case "$opts" in
+			*,*)  opts="${opts%%,*} ${opts#*,}"   ;;
+			*::*) opts="${opts%%::*}.${opts#*::}" ;;
+			*) break ;;
+		esac
+	done
+	local OPTIND=1 OPTOFS= GETOPT_ALLOW_ALTERNATIVE="${alt:+1}"
+	local ret=0 out=' -- '
+	! printenv POSIXLY_CORRECT >/dev/null 2>&1 ||
+		GETOPT_POSIXLY_CORRECT=1
+	__getopt_out_arg()
+	{
+		local q_arg
+		shift $(($OPTIND-1))
+		quote_shell_variable q_arg "$1"
+		[ -z "$order" ] &&
+			out="${out%% -- *} -- ${out#* -- } \"$q_arg\"" ||
+			out="${out%% -- *} \"$q_arg\" -- ${out#* -- }"
+	}
+	PROG="$prg"
+	while getoptex "$opts" "$@" && rc=0 || rc=$?; do
+		case "$rc" in
+			1)
+				[ $# -ge $OPTIND -a -z "${GETOPT_POSIXLY_CORRECT-}" ] ||
+					break
+				__getopt_out_arg "$@"
+				OPTIND=$(($OPTIND+1))
+				[ "$OPTTYP" != '--' ] ||
+					break
+				continue
+				;;
+			2)	ret=1
+				;;
+		esac
+		if [ "$OPTOPT" = '?' ]; then
+			if [ -n "$GETOPT_ALLOW_UNKNOWN" ]; then
+				out="${out%% -- *} -- ${out#* -- }$OPTUKN"
+				OPTUKN=
+			fi
+			continue
+		fi
+		pfx='-'
+		[ "${#OPTOPT}" -eq 1 ] ||
+			pfx='--'
+		out="${out%% -- *} $pfx$OPTOPT${OPTTYP:+ '$OPTARG'} -- ${out#* -- }"
+	done
+	local q_arg
+	shift $(($OPTIND-1))
+	set -- "$@"
+	while [ "$#" -gt 0 ]; do
+		quote_shell_variable q_arg "$1"
+		out="${out%% -- *} -- ${out#* -- } \"$q_arg\""
+		shift
+	done
+	[ -n "$quiet_output" ] ||
+		printf '%s\n' "$out${OPTUKN:+$OPTUKN}"
+	return $ret
+}
+fi # __included_shell_single

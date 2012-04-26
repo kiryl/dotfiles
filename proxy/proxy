@@ -1,6 +1,6 @@
 #!/bin/sh -eu
 
-. shell-ip-address
+. shell-lib
 
 http_proxy=proxy-ir.intel.com
 http_proxy_port=911
