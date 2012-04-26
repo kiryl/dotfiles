@@ -1,1 +1,1 @@
-files := zshrc zshenv
+files := zshrc zshenv zsh
