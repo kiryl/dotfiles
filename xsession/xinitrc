@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+eval "$(ssh-agent)"
+xrdb -merge ~/.Xresources
+while read line; do
+	setxkbmap $line
+done < ~/.Xkbmap
+awesome
