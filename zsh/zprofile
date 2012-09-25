@@ -1,4 +1,5 @@
-typeset -U path
-path=(~/bin $path)
-export PATH
+export GOPATH=~/opt/go
 
+typeset -U path
+path=(~/bin $GOPATH/bin $path)
+export PATH
