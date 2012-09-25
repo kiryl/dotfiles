@@ -2,7 +2,7 @@ MAKEFLAGS += -rR --no-print-directory
 srctree := $(CURDIR)
 export srctree
 
-components ?= awesome firefox fontconfig git pentadactyl proxy vim xsession zsh
+components ?= awesome fontconfig git pentadactyl proxy vim xsession zsh
 
 all: $(components)
 
