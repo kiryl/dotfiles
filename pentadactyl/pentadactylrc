@@ -15,7 +15,18 @@ set hlfind
 set incfind
 
 " Do not close the browser if last tab is closed
-:set! browser.tabs.closeWindowWithLastTab=false
+set! browser.tabs.closeWindowWithLastTab=false
+
+" Disable newtab
+set! browser.newtabpage.enabled=false
+
+" Disable smooth scroll
+set! general.smoothScroll=false
+
+" Download settings
+set! browser.download.dir=/home/kas/tmp
+set! browser.download.folderList=2
+set! browser.download.manager.showWhenStarting=false
 
 " Pass through for Google Reader
 set passkeys+='google\.com/reader':jk<Space>
