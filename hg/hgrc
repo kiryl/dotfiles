@@ -1,0 +1,18 @@
+[ui]
+username = Kirill A. Shutemov <kirill@shutemov.name>
+
+[extensions]
+color =
+fetch =
+graphlog =
+mq =
+pager =
+progress =
+rebase =
+transplant =
+
+[diff]
+git = True
+
+[pager]
+pager = LESS='FSRX' less
