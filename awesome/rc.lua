@@ -6,7 +6,7 @@ require("scratch")
 require("theme")
 print("Entered rc.lua: " .. os.time())
 
-terminal = "uxterm"
+terminal = "urxvt"
 browser = "firefox"
 lock = "xlock"
 
