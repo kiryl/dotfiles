@@ -13,10 +13,14 @@ destpath	:= $(HOME)/.
 endif
 
 files := $(addprefix $(destpath),$(files))
+dirs := $(addprefix $(destpath),$(dirs))
 
-all: $(files)
+all: $(files) $(dirs)
 
 $(files): $(destpath)%: $(srctree)/$(component)/%
 	@$(create_symlink) $< $@
+
+$(dirs):
+	@mkdir -p $@
 
 .PHONY: all
