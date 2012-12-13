@@ -1,1 +1,1 @@
-files := Xkbmap Xresources xinitrc
+files := Xresources xinitrc
