@@ -13,7 +13,7 @@ layouts = {
 
 shifty.config.defaults = {
     layout = awful.layout.suit.tile.bottom,
-    nmaster   = 2,
+    nmaster   = 3,
     ncol = 1,
     mwfact = 0.75,
     exclusive = false,
