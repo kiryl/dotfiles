@@ -76,6 +76,14 @@ set hlsearch
 " Enable filetype plugins
 filetype plugin indent on
 
+" Use both cscope and ctag for ‘ctrl-]’, ‘:tag’, and ‘vim -t’
+set cscopetag
+
+" Add cscope connection if database found
+if filereadable("cscope.out")
+	cscope add cscope.out
+endif
+
 " When editing a file, always jump to the last known cursor position.
 " Don't do it when the position is invalid or when inside an event handler
 " (happens when dropping a file on gvim).
