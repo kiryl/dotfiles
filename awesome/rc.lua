@@ -84,10 +84,15 @@ end
 -- Define a tag table which hold all screen tags.
 tags = {}
 for s = 1, screen.count() do
+    if screen[s].geometry.width >= 1920 then
+	    nmaster = 3
+    else
+	    nmaster = 2
+    end
     -- Each screen has its own tag table.
     tags[s] = awful.tag({ 1, 2, 3, 4, 5, 6, 7, 8, 9 }, s, layouts[4])
     for i = 1, #tags[s] do
-	    awful.tag.setnmaster(2, tags[s][i])
+	    awful.tag.setnmaster(nmaster, tags[s][i])
 	    awful.tag.setmwfact(0.75, tags[s][i])
     end
 end
