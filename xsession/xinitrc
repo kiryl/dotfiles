@@ -6,4 +6,4 @@ eval "$(ssh-agent)"
 xrdb -merge ~/.Xresources
 setxkbmap -layout us,ru,by
 setxkbmap -option grp:ctrl_shift_toggle,grp_led:scroll,grp:switch,terminate:ctrl_alt_bksp
-awesome
+awesome --no-argb
