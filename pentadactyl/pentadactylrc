@@ -28,7 +28,13 @@ set! browser.download.dir=/home/kas/tmp
 set! browser.download.folderList=2
 set! browser.download.manager.showWhenStarting=false
 
-" Pass through for Google Reader
-set passkeys+='google\.com/reader':jk<Space>
+""
+" Pass through
+
+" Google Reader
+set passkeys+='google\.com/reader':jkr<Space>
+
+" G+
+set passkeys+='plus\.google\.com':jkr<Space>
 
 " vim: ft=vim
