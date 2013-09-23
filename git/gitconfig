@@ -4,6 +4,7 @@
 [core]
 	gitproxy = proxy
 	pager = less -R
+	abbrev = 10
 [color]
 	ui = auto
 [color "diff"]
@@ -12,3 +13,5 @@
 	default = current
 [merge]
 	conflictstyle = diff3
+[log]
+	decorate = short
