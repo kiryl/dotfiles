@@ -13,9 +13,9 @@ URxvt.clipboard.autocopy:	true
 URxvt.selection.pattern-0:	([[:word:]]+)
 
 URxvt.font:		xft:PragmataPro:size=9:antialias=false
-URxvt.boldFont:		xft:PragmataPro:size=9:antialias=false
-URxvt.italicFont:	xft:PragmataPro:size=9:antialias=false
-URxvt.boldItalicFont:	xft:PragmataPro:size=9:antialias=false
+URxvt.boldFont:		xft:PragmataPro:size=9:bold
+URxvt.italicFont:	xft:PragmataPro:size=9:italic
+URxvt.boldItalicFont:	xft:PragmataPro:size=9:bold:italic
 
 URxvt.background:	gray10
 URxvt.foreground:	PeachPuff1
