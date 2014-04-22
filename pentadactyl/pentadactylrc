@@ -5,6 +5,9 @@
 " - status bar
 set guioptions=CMcs
 
+" color theme
+colorscheme solarized-dark
+
 " Hide tab line
 set showtabline=never
 

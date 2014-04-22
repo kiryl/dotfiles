@@ -1,1 +1,1 @@
-files := pentadactylrc
+files := pentadactylrc pentadactyl

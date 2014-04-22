@@ -12,13 +12,15 @@ SAVEHIST=1000000
 
 KEYTIMEOUT=20
 
-PROMPT='%F{green}%m%f %F{yellow}%10<…<%~%<<%f %F{yellow}%1v%f-%F{white}%#%f '
+eval "$(dircolors ~/.zsh/misc/dircolors.256dark)"
+
+PROMPT='%F{default}%m%f %F{blue}%10<…<%~%<<%f %F{blue}%1v%f-%F{white}%#%f '
 RPROMPT='%F{red}%(?..[%?] )%f$vcs_info_msg_0_'
 
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:*' get-revision true
-zstyle ':vcs_info:*' actionformats '(%F{cyan}%s%F{yellow}:%F{green}%b@%.5i%F{yellow}|%F{red}%a%f)'
-zstyle ':vcs_info:*' formats '(%F{cyan}%s%F{yellow}:%F{green}%b@%.5i%f)'
+zstyle ':vcs_info:*' actionformats '(%F{cyan}%s%F{blue}:%F{green}%b@%.5i%F{blue}|%F{red}%a%f)'
+zstyle ':vcs_info:*' formats '(%F{cyan}%s%F{blue}:%F{green}%b@%F{default}%.5i%f)'
 add-zsh-hook precmd vcs_info
 
 setopt APPEND_HISTORY		# append their history list to the history file, rather than  replace it

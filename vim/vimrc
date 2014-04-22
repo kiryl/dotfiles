@@ -107,4 +107,4 @@ au! BufRead,BufNewFile *qemu*/*.[ch] source ~/.vim/ftplugin/c-qemu.vim
 au! BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
 
 " Change colorscheme
-colorscheme my
+colorscheme solarized

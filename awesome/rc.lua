@@ -38,9 +38,7 @@ end
 
 -- {{{ Variable definitions
 -- Themes define colours, icons, and wallpapers
-beautiful.init("/usr/share/awesome/themes/default/theme.lua")
-theme.border_focus = "#CDAF95"
-theme.font = "PragmataPro 9"
+beautiful.init( awful.util.getdir("config") .. "/theme.lua" )
 
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvt"
