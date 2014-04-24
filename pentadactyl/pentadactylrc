@@ -32,7 +32,7 @@ set! browser.download.manager.showWhenStarting=false
 " Pass through
 
 " Feedly
-set passkeys+='feedly.com':jkJK<Space>
+set passkeys+='feedly.com':jkJKrvmAs<Space>
 
 " G+
 set passkeys+='plus\.google\.com':jkr<Space>
