@@ -76,6 +76,9 @@ set hlsearch
 " Symbols to indicate tabstops and EOLs when 'list' is set
 set listchars=tab:▸\ ,eol:¬
 
+" Indicate wrapped lines
+set showbreak=…
+
 " Enable filetype plugins
 filetype plugin indent on
 
