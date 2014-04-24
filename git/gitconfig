@@ -15,5 +15,6 @@
 	conflictstyle = diff3
 [log]
 	decorate = short
+	abbrevCommit = true
 [format]
 	coverletter = auto
