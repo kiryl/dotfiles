@@ -1,7 +1,12 @@
 export CVSEDITOR=vim
 export EDITOR=vim
 export VISUAL=vim
+export GOPATH=~/opt/go
 
 typeset -U fpath
 fpath=(~/.zsh/functions $fpath)
 export FPATH
+
+typeset -U path
+path=(~/bin $GOPATH/bin $path)
+export PATH
