@@ -18,3 +18,5 @@
 	abbrevCommit = true
 [format]
 	coverletter = auto
+[pull]
+	ff = only
