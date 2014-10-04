@@ -15,7 +15,7 @@ KEYTIMEOUT=20
 eval "$(dircolors ~/.zsh/misc/dircolors.256dark)"
 
 PROMPT='%F{default}%m%f %F{blue}%10<…<%~%<<%f %F{blue}%1v%f-%F{white}%#%f '
-RPROMPT='%F{red}%(?..[%?] )%f$vcs_info_msg_0_'
+RPROMPT='%(?..%F{red}[%?] %f)$vcs_info_msg_0_'
 
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:*' get-revision true
