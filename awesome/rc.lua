@@ -72,6 +72,25 @@ local layouts =
 }
 -- }}}
 
+-- {{{ Helpers
+
+-- Volume widget logic
+cardid  = 0
+channel = "Master"
+function volume(mode, widget)
+   if mode == "up" then
+       io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%+"):read("*all")
+       vicious.force({ widget })
+   elseif mode == "down" then
+       io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%-"):read("*all")
+       vicious.force({ widget })
+   else
+       io.popen("amixer -c " .. cardid .. " sset " .. channel .. " toggle"):read("*all")
+       vicious.force({ widget })
+   end
+end
+-- }}}
+
 -- {{{ Wallpaper
 if beautiful.wallpaper then
     for s = 1, screen.count() do
@@ -151,7 +170,15 @@ mytasklist.buttons = awful.util.table.join(
                                           end))
 
 mybatwidget = wibox.widget.textbox()
-vicious.register(mybatwidget, vicious.widgets.bat, '$1$2', 61, 'BAT0')
+vicious.register(mybatwidget, vicious.widgets.bat, ' $1$2', 61, 'BAT0')
+
+myvolwidget = wibox.widget.textbox()
+myvolwidget:buttons(awful.util.table.join(
+   awful.button({ }, 1, function() volume('mute', myvolwidget) end),
+   awful.button({ }, 4, function() volume('up', myvolwidget) end),
+   awful.button({ }, 5, function() volume('down', myvolwidget) end)
+))
+vicious.register(myvolwidget, vicious.widgets.volume, ' $2$1', 0.2, 'Master')
 
 for s = 1, screen.count() do
     -- Create a promptbox for each screen
@@ -181,6 +208,7 @@ for s = 1, screen.count() do
     -- Widgets that are aligned to the right
     local right_layout = wibox.layout.fixed.horizontal()
     if s == 1 then right_layout:add(wibox.widget.systray()) end
+    right_layout:add(myvolwidget)
     right_layout:add(mybatwidget)
     right_layout:add(mytextclock)
     right_layout:add(mylayoutbox[s])
@@ -261,7 +289,12 @@ globalkeys = awful.util.table.join(
                   awful.util.getdir("cache") .. "/history_eval")
               end),
     -- Menubar
-    awful.key({ modkey }, "p", function() menubar.show() end)
+    awful.key({ modkey }, "p", function() menubar.show() end),
+
+    -- Audio
+    awful.key({ }, "XF86AudioRaiseVolume", function() volume('up', myvolwidget) end),
+    awful.key({ }, "XF86AudioLowerVolume", function() volume('down', myvolwidget) end),
+    awful.key({ }, "XF86AudioMute", function() volume('mute', myvolwidget) end)
 )
 
 clientkeys = awful.util.table.join(
