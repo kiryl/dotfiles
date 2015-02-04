@@ -66,6 +66,9 @@ set nowrap
 " Set fold method
 set foldmethod=marker
 
+" Set <Leader>
+let mapleader=","
+
 " Persistent undo
 set undofile
 set undodir=~/.vimundo
