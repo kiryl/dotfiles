@@ -115,3 +115,7 @@ au! BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
 " Change colorscheme
 set background=dark
 colorscheme solarized
+
+" Pathogen load
+runtime bundle/vim-pathogen/autoload/pathogen.vim
+execute pathogen#infect()
