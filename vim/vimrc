@@ -82,6 +82,15 @@ set listchars=tab:▸\ ,eol:¬
 " Indicate wrapped lines
 set showbreak=…
 
+" Split vertical windows right to the current windows
+set splitright
+
+" Split horizontal windows below to the current windows
+set splitbelow
+
+" Automatically save before :next, :make etc.
+set autowrite
+
 " Enable filetype plugins
 filetype plugin indent on
 
@@ -119,3 +128,15 @@ colorscheme solarized
 " Pathogen load
 runtime bundle/vim-pathogen/autoload/pathogen.vim
 execute pathogen#infect()
+
+" Remove search highlight
+nnoremap <leader><space> :nohlsearch<CR>
+
+" Compile
+nmap <Leader>m :make<CR>
+
+" vim-go
+let g:go_fmt_command = "goimports"
+
+" Tagbar
+nmap <F8> :TagbarToggle<CR>
