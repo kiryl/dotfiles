@@ -13,6 +13,8 @@ local menubar = require("menubar")
 -- Vicious widget kit
 local vicious = require("vicious")
 
+local xrandr = require("xrandr")
+
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
@@ -294,7 +296,10 @@ globalkeys = awful.util.table.join(
     -- Audio
     awful.key({ }, "XF86AudioRaiseVolume", function() volume('up', myvolwidget) end),
     awful.key({ }, "XF86AudioLowerVolume", function() volume('down', myvolwidget) end),
-    awful.key({ }, "XF86AudioMute", function() volume('mute', myvolwidget) end)
+    awful.key({ }, "XF86AudioMute", function() volume('mute', myvolwidget) end),
+
+    -- XRandr
+    awful.key({ }, "XF86Display", xrandr)
 )
 
 clientkeys = awful.util.table.join(
