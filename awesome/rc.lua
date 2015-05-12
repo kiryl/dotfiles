@@ -14,6 +14,7 @@ local menubar = require("menubar")
 local vicious = require("vicious")
 
 local xrandr = require("xrandr")
+local awmodoro = require("awmodoro")
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -182,6 +183,37 @@ myvolwidget:buttons(awful.util.table.join(
 ))
 vicious.register(myvolwidget, vicious.widgets.volume, ' $2$1', 0.2, 'Master')
 
+mypomowibox = awful.wibox({ position = "top", screen = 1, height=4})
+mypomowibox.visible = false
+local pomodoro = awmodoro.new({
+	minutes             = 25,
+	do_notify           = true,
+	active_bg_color     = '#313131',
+	paused_bg_color     = '#7746D7',
+	fg_color            = {type = "linear", from = {0,0}, to = {mypomowibox.width, 0}, stops = {{0, "#AECF96"},{0.5, "#88A175"},{1, "#FF5656"}}},
+	width               = mypomowibox.width,
+	height              = mypomowibox.height, 
+
+	begin_callback = function()
+		for s = 1, screen.count() do
+			mywibox[s].visible = false
+		end
+		mypomowibox.visible = true
+	end,
+
+	finish_callback = function()
+		for s = 1, screen.count() do
+			mywibox[s].visible = true
+		end
+		mypomowibox.visible = false
+	end})
+pomodoro:buttons(awful.util.table.join(
+    awful.button({ }, 1, function() pomodoro:toggle() end),
+    awful.button({ }, 2, function() pomodoro:finish() end),
+    awful.button({ }, 3, function() pomodoro:reset() end)
+))
+mypomowibox:set_widget(pomodoro)
+
 for s = 1, screen.count() do
     -- Create a promptbox for each screen
     mypromptbox[s] = awful.widget.prompt()
@@ -290,8 +322,9 @@ globalkeys = awful.util.table.join(
                   awful.util.eval, nil,
                   awful.util.getdir("cache") .. "/history_eval")
               end),
-    -- Menubar
-    awful.key({ modkey }, "p", function() menubar.show() end),
+
+    awful.key({ modkey          }, "p", function () pomodoro:toggle() end),
+    awful.key({ modkey, "Shift" }, "p", function () pomodoro:finish() end),
 
     -- Audio
     awful.key({ }, "XF86AudioRaiseVolume", function() volume('up', myvolwidget) end),
