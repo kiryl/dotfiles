@@ -4,3 +4,6 @@
 [submodule "vim/vim/bundle/vim-pathogen"]
 	path = vim/vim/bundle/vim-pathogen
 	url = git://github.com/tpope/vim-pathogen
+[submodule "awesome/awmodoro"]
+	path = awesome/awmodoro
+	url = git://github.com/optama/awmodoro.git
