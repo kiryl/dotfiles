@@ -1,0 +1,61 @@
+" Vimperator
+" ----------
+
+" hide all gui elements
+set gui=none
+
+" highlight search
+set hlsearch
+
+" incremental search
+set incsearch
+
+" autocomplete with smart Firefox stuff and search engines
+set complete=ls
+
+" Google search
+set defsearch=google
+
+" keep messages around for 2 seconds
+set messagetimeout=2000
+
+ignorekeys add 'mail\.google\.com'
+ignorekeys add 'drive\.google\.com'
+ignorekeys add 'plus\.google\.com'
+ignorekeys add 'feedly\.com'
+
+" Firefox
+" -------
+
+" Do not close the browser if last tab is closed
+set! browser.tabs.closeWindowWithLastTab=false
+
+" Disable newtab
+set! browser.newtabpage.enabled=false
+
+" Disable smooth scroll
+set! general.smoothScroll=false
+
+" full URLs don't scare me
+set! browser.urlbar.trimURLs=false
+
+" Download settings
+set! browser.download.dir=/home/kas/tmp
+set! browser.download.folderList=2
+set! browser.download.manager.showWhenStarting=false
+
+" no warnings
+set! browser.tabs.warnOnClose=false
+set! browser.tabs.warnOnCloseOtherTabs=false
+set! browser.tabs.warnOnOpen=false
+set! general.warnOnAboutConfig=false
+
+" don't check if we're the default browser
+set! browser.shell.checkDefaultBrowser=false
+
+" don't wait to install extensions
+set! security.dialog_enable_delay=0
+
+" view that source
+set! view_source.syntax_highlight=true
+set! view_source.wrap_long_lines=true
