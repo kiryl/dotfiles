@@ -11,6 +11,12 @@ set smartindent
 " Use UTF-8.
 set encoding=utf-8
 
+" Show offset of line relative to current
+set relativenumber
+
+" Enable use of mouse all modes
+set mouse=a
+
 " Show line number, cursor position
 set ruler
 
