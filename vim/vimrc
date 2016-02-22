@@ -134,18 +134,8 @@ let g:netrw_silent=1
 set background=dark
 colorscheme solarized
 
-" Pathogen load
-runtime bundle/vim-pathogen/autoload/pathogen.vim
-execute pathogen#infect()
-
 " Remove search highlight
 nnoremap <leader><space> :nohlsearch<CR>
 
 " Compile
 nmap <Leader>m :make<CR>
-
-" vim-go
-let g:go_fmt_command = "goimports"
-
-" Tagbar
-nmap <F8> :TagbarToggle<CR>
