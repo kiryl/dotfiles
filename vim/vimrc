@@ -127,6 +127,9 @@ highlight StatusLine ctermfg=black
 au! BufRead,BufNewFile *qemu*/*.[ch] source ~/.vim/ftplugin/c-qemu.vim
 au! BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
 
+" Make netrw less annoying
+let g:netrw_silent=1
+
 " Change colorscheme
 set background=dark
 colorscheme solarized
