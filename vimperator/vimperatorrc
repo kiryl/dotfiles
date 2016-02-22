@@ -10,8 +10,8 @@ set hlsearch
 " incremental search
 set incsearch
 
-" autocomplete with smart Firefox stuff and search engines
-set complete=ls
+" autocomplete with search engines and smart Firefox stuff
+set complete=sl
 
 " Google search
 set defsearch=google
