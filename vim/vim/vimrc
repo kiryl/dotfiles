@@ -124,6 +124,7 @@ match ExtraWhitespace /\s\+$\| \+\ze\t/
 set statusline=%<%f%=\ [%1*%M%*%n%R%H%W]\ %-7(%y%)\ %5l,%-5(%c%V%)\ %P
 highlight StatusLine ctermfg=black
 
+au! BufRead,BufNewFile *.h setfiletype c
 au! BufRead,BufNewFile *qemu*/*.[ch] source ~/.vim/ftplugin/c-qemu.vim
 au! BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
 
