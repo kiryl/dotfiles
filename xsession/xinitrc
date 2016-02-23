@@ -9,4 +9,6 @@ setxkbmap -layout us,ru,by
 setxkbmap -option grp:ctrl_shift_toggle,grp_led:scroll,grp:switch,terminate:ctrl_alt_bksp
 autocutsel -s PRIMARY &
 autocutsel &
+socat UNIX-LISTEN:"$HOME/var/pbcopy",unlink-early,fork EXEC:'xsel --nodetach -i' &
+socat UNIX-LISTEN:"$HOME/var/pbpaste",unlink-early,fork EXEC:'xsel -o -b' &
 awesome --no-argb
