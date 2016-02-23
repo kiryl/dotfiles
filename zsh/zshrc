@@ -76,3 +76,4 @@ bindkey -M viins "^[[6~"	vi-forward-word
 
 bindkey -M viins "^W"		vi-backward-kill-word
 
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
