@@ -1,0 +1,8 @@
+#!/bin/sh -efu
+
+NVIM="nvim"
+if [ -z "${NVIM_LISTEN_ADDRESS-}" ]; then
+	exec "$NVIM" "$@"
+else
+	exec nvr --remote-wait "$@"
+fi

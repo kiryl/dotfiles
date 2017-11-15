@@ -1,3 +1,48 @@
+" VIM-PLUG BLOCK {{{
+call plug#begin('~/.vim/plugged')
+" Autocomplete
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'zchee/deoplete-clang'
+
+" Required by deoplete on Vim
+if !has('nvim')
+	Plug 'roxma/vim-hug-neovim-rpc'
+	Plug 'roxma/nvim-yarp'
+endif
+
+" Compile
+Plug 'neomake/neomake'
+
+" Editing/Moving
+Plug 'easymotion/vim-easymotion'
+Plug 'tpope/vim-surround'
+Plug 'tpope/vim-repeat'
+Plug 'tpope/vim-commentary'
+
+" GIT
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+
+" Fuzzy search
+Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+Plug 'junegunn/fzf.vim'
+
+" Window and buffer management
+Plug 'moll/vim-bbye'
+Plug 'troydm/zoomwintab.vim'
+
+" UI
+Plug 'iCyMind/NeoSolarized'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+
+" Misc
+Plug 'tpope/vim-eunuch'
+call plug#end()
+" }}}
+
+" BASIC SETTINGS {{{
+
 " Use Vim settings, rather then Vi settings (much better!).
 " This must be first, because it changes other options as a side effect.
 set nocompatible
@@ -12,10 +57,10 @@ set smartindent
 set encoding=utf-8
 
 " Show offset of line relative to current
-set relativenumber
+set relativenumber number
 
-" Enable use of mouse all modes
-set mouse=a
+" Disable use of mouse all modes
+set mouse=
 
 " Show line number, cursor position
 set ruler
@@ -30,7 +75,7 @@ set incsearch
 set showmode
 
 " How many lines of history to remember
-set history=1000
+set history=10000
 
 " Use system clipboard as default paste/delete/yank register
 set clipboard=unnamed
@@ -39,13 +84,13 @@ set clipboard=unnamed
 set ignorecase
 set smartcase
 
-" Shell-like completions
-set wildmode=longest,full
-
 " Turn on wildmenu
 set wildmenu
 
-" Do not redraw while running macros (much faster) (LazyRedraw)
+" Shell-like completions
+set wildmode=longest,full
+
+" Do not redraw while running macros (much faster)
 set lazyredraw
 
 " You can change buffer without saving
@@ -72,9 +117,6 @@ set nowrap
 " Set fold method
 set foldmethod=marker
 
-" Set <Leader>
-let mapleader=","
-
 " Persistent undo
 set undofile
 set undodir=~/.vimundo
@@ -83,10 +125,7 @@ set undodir=~/.vimundo
 set hlsearch
 
 " Symbols to indicate tabstops and EOLs when 'list' is set
-set listchars=tab:▸\ ,eol:¬
-
-" Indicate wrapped lines
-set showbreak=…
+set listchars=tab:▸\ ,trail:-,extends:>,precedes:<,nbsp:+,eol:¬
 
 " Split vertical windows right to the current windows
 set splitright
@@ -97,8 +136,20 @@ set splitbelow
 " Automatically save before :next, :make etc.
 set autowrite
 
-" Enable filetype plugins
-filetype plugin indent on
+" More colors in capable terminals
+set termguicolors
+
+" Change colorscheme
+set background=dark
+colorscheme NeoSolarized
+highlight ExtraWhitespace ctermbg=red guibg=red
+
+" Delete comment character when joining commented lines
+set formatoptions+=j
+
+" Preview of result of some commands in split window
+" FIXME: doesn't work with :terminal
+" set inccommand=split
 
 " Use both cscope and ctag for ‘ctrl-]’, ‘:tag’, and ‘vim -t’
 set cscopetag
@@ -108,86 +159,215 @@ if filereadable("cscope.out")
 	cscope add cscope.out
 endif
 
-" When editing a file, always jump to the last known cursor position.
-" Don't do it when the position is invalid or when inside an event handler
-" (happens when dropping a file on gvim).
-autocmd BufReadPost *
-			\ if line("'\"") > 0 && line("'\"") <= line("$") |
-			\   exe "normal g`\"" |
-			\ endif
+" Enable filetype plugins
+filetype plugin indent on
 
-" Unwanted whitespaces
-highlight link ExtraWhitespace Error
-match ExtraWhitespace /\s\+$\| \+\ze\t/
+" Set <Leader>
+let mapleader=","
 
-" Customize statusline
-set statusline=%<%f%=\ [%1*%M%*%n%R%H%W]\ %-7(%y%)\ %5l,%-5(%c%V%)\ %P
-highlight StatusLine ctermfg=black
-
-au! BufRead,BufNewFile *.h setfiletype c
-au! BufRead,BufNewFile *qemu*/*.[ch] source ~/.vim/ftplugin/c-qemu.vim
-au! BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
+" .h files are C, not C++
+let g:c_syntax_for_h=1
 
 " Make netrw less annoying
 let g:netrw_silent=1
 
-" Change colorscheme
-set background=dark
-colorscheme solarized
+" }}}
 
-" Remove search highlight
-nnoremap <leader><space> :nohlsearch<CR>
+" AUTOCMD {{{
+"
+" http://vim.wikia.com/wiki/Highlight_unwanted_spaces
+autocmd BufNewFile,BufRead,InsertLeave * silent! match ExtraWhitespace /\s\+$/
+autocmd InsertEnter * silent! match ExtraWhitespace /\s\+\%#\@<!$/
 
-" Compile
-nmap <Leader>m :make<CR>
+" When editing a file, always jump to the last known cursor position.
+" Don't do it when the position is invalid or when inside an event handler
+autocmd BufReadPost *
+	\  if line("'\"") > 1 && line("'\"") <= line("$")
+	\|   exe 'normal! g`"zvzz'
+	\| endif
 
-" Navigate windows
-nnoremap <A-h> <C-w>h
-nnoremap <A-j> <C-w>j
-nnoremap <A-k> <C-w>k
-nnoremap <A-l> <C-w>l
+" Per-project settings
+autocmd BufRead,BufNewFile *linux*/*.[ch] source ~/.vim/ftplugin/c-linux.vim
+autocmd BufRead,BufNewFile *qemu*/*.[ch] source ~/.vim/ftplugin/c-qemu.vim
+autocmd BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
+
 if has('nvim')
-	tnoremap <C-ESC> <C-\><C-n>
-	tnoremap <A-h> <C-\><C-n><C-w>h
-	tnoremap <A-j> <C-\><C-n><C-w>j
-	tnoremap <A-k> <C-\><C-n><C-w>k
-	tnoremap <A-l> <C-\><C-n><C-w>l
+	" Terminal scrollback size
+	autocmd TermOpen * setlocal scrollback=100000
+
+	" Jump into/out terminal
+	autocmd BufEnter * if &buftype == 'terminal' | :startinsert | endif
+	autocmd BufLeave * if &buftype == 'terminal' | :stopinsert | endif
 endif
 
-call plug#begin('~/.vim/plugged')
+" }}}
 
-Plug 'mhinz/vim-startify'
+" {{{ MAPPING
 
-Plug 'easymotion/vim-easymotion'
+" Remove search highlight and re-evaluate syntax highlighting
+nnoremap <c-l> :nohlsearch<cr>:diffupdate<cr>:syntax sync fromstart<cr><c-l>
 
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+" Navigate windows
+nnoremap <A-j> <C-w>w
+nnoremap <A-k> <C-w>W
+nnoremap <Leader><Left> gT
+nnoremap <Leader><Right> gt
+nnoremap <A-m> :ZoomWinTabToggle<CR>
+nnoremap <A-CR> :vsplit +term<CR>
+nnoremap <A-Backspace> :Bdelete<CR>
+nnoremap <A-c> :close<CR>
 
-Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
+if has('nvim')
+	tnoremap <Leader><Esc> <C-\><C-n>
+	tnoremap <A-j> <C-\><C-n>^<C-w>w
+	tnoremap <A-k> <C-\><C-n>^<C-w>W
+	tnoremap <A-m> <C-\><C-n>:ZoomWinTabToggle<CR>i
+	tnoremap <A-CR> <C-\><C-n>:vsplit +term<CR>
+	tnoremap <A-Backspace> <C-\><C-n>:Bdelete!<CR>
+	tnoremap <A-c> <C-\><C-n>:close<CR>
+	tnoremap <Leader><Left> <C-\><C-n>gT
+	tnoremap <Leader><Right> <C-\><C-n>gt
+endif
 
-call plug#end()
+cnoreabbrev <silent> wq w<bar>Bdelete
+cnoreabbrev <silent> q Bdelete
 
-" Make full clone
+inoremap <silent><expr><Tab>	pumvisible() ? "\<Down>" : "\<Tab>"
+" deoplete#mappings#manual_complete()
+inoremap <silent><expr><S-Tab>	pumvisible() ? "\<Up>" : "\<S-Tab>"
+inoremap <silent><expr><Esc>	pumvisible() ? "\<C-e>" : "\<Esc>"
+inoremap <silent><expr><CR>	pumvisible() ? "\<C-y>" : "\<CR>"
+
+" }}}
+
+" PLUGINS {{{
+
+"----------------------------------------------------------------------
+" vim-plug
 let g:plug_shallow = 0
 
-" Change dir on open to git root
-let g:startify_change_to_dir = 0
-let g:startify_change_to_vcs_root = 0
+"----------------------------------------------------------------------
+" deoplete
+let g:deoplete#enable_at_startup = 1
+let g:deoplete#disable_auto_complete = 0
+let g:deoplete#auto_complete_delay = 500
+let g:deoplete#tag#cache_limit_size = 5000000
 
-" Disable default EasyMotion mappings
+" Toggle deoplete.
+fun! _My_toggle_deoplete()
+	let g:deoplete#disable_auto_complete = !g:deoplete#disable_auto_complete
+endfun
+noremap  <F12> :<C-u>call _My_toggle_deoplete()<CR>
+inoremap <F12> <c-o>:call _My_toggle_deoplete()<CR>
+
+"----------------------------------------------------------------------
+" deoplete-clang
+let g:deoplete#sources#clang#libclang_path = "/usr/lib/llvm-3.8/lib/libclang.so"
+let g:deoplete#sources#clang#clang_header = "/usr/lib/clang/3.8/include"
+
+call deoplete#custom#source('clang', 'mark', '©')
+call deoplete#custom#source('clang', 'rank', 1000)
+
+"----------------------------------------------------------------------
+" neomake
+call neomake#configure#automake('w')
+
+let g:neomake_error_sign = {'text': '✘', 'texthl': 'NeomakeErrorSign'}
+let g:neomake_warning_sign = {
+			\   'text': '⚑',
+			\   'texthl': 'NeomakeWarningSign',
+			\ }
+let g:neomake_message_sign = {
+			\   'text': '➤',
+			\   'texthl': 'NeomakeMessageSign',
+			\ }
+let g:neomake_info_sign = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
+
+let g:neomake_c_linux_maker = {
+        \ 'exe': 'make',
+        \ 'args': ['O="/home/kas/var/linus"', '-j100', '%:r.o'],
+        \ 'errorformat':
+            \ '%f:%l:%c: %trror: %m,' .
+            \ '%f:%l:%c: %tarning: %m,' .
+            \ '%f:%l: %trror: %m,'.
+            \ '%f:%l: %tarning: %m,'
+        \ }
+
+let s:spinner_index = 0
+let s:active_spinners = 0
+let s:spinner_states = ['←', '↖', '↑', '↗', '→', '↘', '↓', '↙']
+
+function! StartSpinner()
+    let b:show_spinner = 1
+    let s:active_spinners += 1
+    if s:active_spinners == 1
+        let s:spinner_timer = timer_start(1000 / len(s:spinner_states), 'SpinSpinner', {'repeat': -1})
+    endif
+endfunction
+
+function! StopSpinner()
+    let b:show_spinner = 0
+    let s:active_spinners -= 1
+    if s:active_spinners == 0
+        :call timer_stop(s:spinner_timer)
+    endif
+endfunction
+
+function! SpinSpinner(timer)
+    let s:spinner_index = float2nr(fmod(s:spinner_index + 1, len(s:spinner_states)))
+    redraw
+endfunction
+
+function! SpinnerText()
+    if get(b:, 'show_spinner', 0) == 0
+        return " "
+    endif
+
+    return s:spinner_states[s:spinner_index]
+endfunction
+
+augroup neomake_hooks
+    au!
+    autocmd User NeomakeJobInit :call StartSpinner()
+    autocmd User NeomakeFinished :call StopSpinner()
+augroup END
+
+"----------------------------------------------------------------------
+" EasyMotion
 let g:EasyMotion_do_mapping = 0
-
-" Hit <Enter> if first match is what you want
 let g:EasyMotion_enter_jump_first = 1
 
 " Use `s{char}{char}{label}` to move around the screen
 nmap s <Plug>(easymotion-overwin-f2)
 
-" JK motions: Line motions
-map <Leader>j <Plug>(easymotion-j)
-map <Leader>k <Plug>(easymotion-k)
+" gitgutter
+let g:gitgutter_override_sign_column_highlight = 0
 
-" Sane buffer/window management
-nnoremap gs :Sayonara<cr>
-nnoremap gS :Sayonara!<cr>
+"----------------------------------------------------------------------
+" FZF
+nnoremap <silent><Leader><Leader>	:Files<CR>
+nnoremap <silent><Leader><Enter>	:Buffers<CR>
+nnoremap <silent><Leader>c		:Commits<CR>
+nnoremap <silent><Leader>l		:Lines<CR>
+nnoremap <silent><Leader>ag		:Ag <C-R><C-W><CR>
+nnoremap <silent><Leader>AG		:Ag <C-R><C-A><CR>
+xnoremap <silent><Leader>ag		:Ag <C-R>"<CR>
+nnoremap <silent><Leader>gg		:GFiles<CR>
+nnoremap <silent><Leader>gG		:GGrep<CR>
 
-let g:sayonara_confirm_quit = 1
+" Command for git grep
+" - fzf#vim#grep(command, with_column, [options], [fullscreen])
+command! -bang -nargs=* GGrep
+  \ call fzf#vim#grep('git grep --line-number '.shellescape(<q-args>), 0, <bang>0)
+
+"----------------------------------------------------------------------
+" airline
+let g:airline_powerline_fonts = 1
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#whitespace#checks = [ 'trailing' ]
+let g:airline#extensions#neomake#error_symbol = '✘'
+let g:airline#extensions#neomake#warning_symbol = '⚑'
+
+call airline#parts#define('spinner', {'function': 'SpinnerText', 'accents': 'bold'})
+let g:airline_section_z = airline#section#create(['spinner'])
+" }}}
