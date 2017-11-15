@@ -1,3 +1,3 @@
-set noexpandtab
-set shiftwidth=4
-set cino=(0,t0
+setlocal noexpandtab
+setlocal shiftwidth=4
+setlocal cino=(0,t0

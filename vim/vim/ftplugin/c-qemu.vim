@@ -1,3 +1,3 @@
-set expandtab
-set shiftwidth=4
-set smarttab
+setlocal expandtab
+setlocal shiftwidth=4
+setlocal smarttab
