@@ -14,7 +14,11 @@ local vicious = require("vicious")
 
 local xrandr = require("xrandr")
 
+-- Enable VIM help for hotkeys widget when client with matching name is opened:
+require("awful.hotkeys_popup.keys.vim")
+
 -- {{{ Error handling
+-- @DOC_ERROR_HANDLING@
 -- Check if awesome encountered an error during startup and fell back to
 -- another config (This code will only ever execute for the fallback config)
 if awesome.startup_errors then
@@ -40,9 +44,11 @@ end
 -- }}}
 
 -- {{{ Variable definitions
+-- @DOC_LOAD_THEME@
 -- Themes define colours, icons, font and wallpapers.
 beautiful.init( awful.util.getdir("config") .. "/theme.lua" )
 
+-- @DOC_DEFAULT_APPLICATIONS@
 -- This is used later as the default terminal and editor to run.
 terminal = "urxvt"
 editor = os.getenv("EDITOR") or "vim"
@@ -55,6 +61,7 @@ editor_cmd = terminal .. " -e " .. editor
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
 
+-- @DOC_LAYOUT@
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
     awful.layout.suit.floating,
@@ -89,38 +96,35 @@ local function client_menu_toggle_fn()
         end
     end
 end
+ -- }}}
 
 -- Volume widget logic
-cardid  = 0
-channel = "Master"
+device  = "default"
+channel = "PCM"
 function volume(mode, widget)
    if mode == "up" then
-       io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%+"):read("*all")
+       io.popen("amixer -q -D " .. device .. " sset " .. channel .. " 5%+"):read("*all")
        vicious.force({ widget })
    elseif mode == "down" then
-       io.popen("amixer -q -c " .. cardid .. " sset " .. channel .. " 5%-"):read("*all")
+       io.popen("amixer -q -D " .. device .. " sset " .. channel .. " 5%-"):read("*all")
        vicious.force({ widget })
    else
-       io.popen("amixer -c " .. cardid .. " sset " .. channel .. " toggle"):read("*all")
+       io.popen("amixer -D " .. device .. " sset " .. channel .. " toggle"):read("*all")
        vicious.force({ widget })
    end
 end
 -- }}}
 
-
 -- Keyboard map indicator and switcher
 mykeyboardlayout = awful.widget.keyboardlayout()
 
--- {{{ Wibox
+-- {{{ Wibar
 -- Create a textclock widget
-mytextclock = awful.widget.textclock()
+mytextclock = wibox.widget.textclock()
 
 -- Create a wibox for each screen and add it
-mywibox = {}
-mypromptbox = {}
-mylayoutbox = {}
-mytaglist = {}
-mytaglist.buttons = awful.util.table.join(
+-- @TAGLIST_BUTTON@
+local taglist_buttons = gears.table.join(
                     awful.button({ }, 1, function(t) t:view_only() end),
                     awful.button({ modkey }, 1, function(t)
                                               if client.focus then
@@ -137,8 +141,8 @@ mytaglist.buttons = awful.util.table.join(
                     awful.button({ }, 5, function(t) awful.tag.viewprev(t.screen) end)
                 )
 
-mytasklist = {}
-mytasklist.buttons = awful.util.table.join(
+-- @TASKLIST_BUTTON@
+local tasklist_buttons = gears.table.join(
                      awful.button({ }, 1, function (c)
                                               if c == client.focus then
                                                   c.minimized = true
@@ -174,6 +178,7 @@ myvolwidget:buttons(awful.util.table.join(
 ))
 vicious.register(myvolwidget, vicious.widgets.volume, ' $2$1', 0.2, 'PCM')
 
+-- @DOC_FOR_EACH_SCREEN@
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
     gears.wallpaper.set(gears.color.create_solid_pattern("#00000000"))
@@ -192,33 +197,35 @@ awful.screen.connect_for_each_screen(function(s)
     end
 
     -- Create a promptbox for each screen
-    mypromptbox[s] = awful.widget.prompt()
+    s.mypromptbox = awful.widget.prompt()
     -- Create an imagebox widget which will contains an icon indicating which layout we're using.
     -- We need one layoutbox per screen.
-    mylayoutbox[s] = awful.widget.layoutbox(s)
-    mylayoutbox[s]:buttons(awful.util.table.join(
+    s.mylayoutbox = awful.widget.layoutbox(s)
+    s.mylayoutbox:buttons(gears.table.join(
                            awful.button({ }, 1, function () awful.layout.inc( 1) end),
                            awful.button({ }, 3, function () awful.layout.inc(-1) end),
                            awful.button({ }, 4, function () awful.layout.inc( 1) end),
                            awful.button({ }, 5, function () awful.layout.inc(-1) end)))
     -- Create a taglist widget
-    mytaglist[s] = awful.widget.taglist(s, awful.widget.taglist.filter.all, mytaglist.buttons)
+    s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, taglist_buttons)
 
     -- Create a tasklist widget
-    mytasklist[s] = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, mytasklist.buttons)
+    s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, tasklist_buttons)
 
+    -- @DOC_WIBAR@
     -- Create the wibox
-    mywibox[s] = awful.wibar({ position = "top", screen = s })
+    s.mywibox = awful.wibar({ position = "top", screen = s })
 
+    -- @DOC_SETUP_WIDGETS@
     -- Add widgets to the wibox
-    mywibox[s]:setup {
+    s.mywibox:setup {
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            mytaglist[s],
-            mypromptbox[s],
+            s.mytaglist,
+            s.mypromptbox,
         },
-        mytasklist[s], -- Middle widget
+        s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
             wibox.widget.systray(),
@@ -226,21 +233,23 @@ awful.screen.connect_for_each_screen(function(s)
 	    mybatwidget,
             mykeyboardlayout,
             mytextclock,
-            mylayoutbox[s],
+            s.mylayoutbox,
         },
     }
 end)
 -- }}}
 
 -- {{{ Mouse bindings
-root.buttons(awful.util.table.join(
+-- @DOC_ROOT_BUTTONS@
+root.buttons(gears.table.join(
     awful.button({ }, 4, awful.tag.viewnext),
     awful.button({ }, 5, awful.tag.viewprev)
 ))
 -- }}}
 
 -- {{{ Key bindings
-globalkeys = awful.util.table.join(
+-- @DOC_GLOBAL_KEYBINDINGS@
+globalkeys = gears.table.join(
     awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
               {description="show help", group="awesome"}),
     awful.key({ modkey,           }, "Left",   awful.tag.viewprev,
@@ -320,15 +329,17 @@ globalkeys = awful.util.table.join(
               {description = "restore minimized", group = "client"}),
 
     -- Prompt
-    awful.key({ modkey },            "r",     function () mypromptbox[awful.screen.focused()]:run() end,
+    awful.key({ modkey },            "r",     function () awful.screen.focused().mypromptbox:run() end,
               {description = "run prompt", group = "launcher"}),
 
     awful.key({ modkey }, "x",
               function ()
-                  awful.prompt.run({ prompt = "Run Lua code: " },
-                  mypromptbox[awful.screen.focused()].widget,
-                  awful.util.eval, nil,
-                  awful.util.get_cache_dir() .. "/history_eval")
+                  awful.prompt.run {
+                    prompt       = "Run Lua code: ",
+                    textbox      = awful.screen.focused().mypromptbox.widget,
+                    exe_callback = awful.util.eval,
+                    history_path = awful.util.get_cache_dir() .. "/history_eval"
+                  }
               end,
               {description = "lua execute prompt", group = "awesome"}),
 
@@ -341,12 +352,14 @@ globalkeys = awful.util.table.join(
     awful.key({ }, "XF86Display", xrandr)
 )
 
-clientkeys = awful.util.table.join(
+-- @DOC_CLIENT_KEYBINDINGS@
+clientkeys = gears.table.join(
     awful.key({ modkey,           }, "f",
         function (c)
             c.fullscreen = not c.fullscreen
             c:raise()
-        end),
+        end,
+        {description = "toggle fullscreen", group = "client"}),
     awful.key({ modkey, "Shift"   }, "c",      function (c) c:kill()                         end,
               {description = "close", group = "client"}),
     awful.key({ modkey, "Control" }, "space",  awful.client.floating.toggle                     ,
@@ -369,14 +382,27 @@ clientkeys = awful.util.table.join(
             c.maximized = not c.maximized
             c:raise()
         end ,
-        {description = "maximize", group = "client"})
+        {description = "(un)maximize", group = "client"}),
+    awful.key({ modkey, "Control" }, "m",
+        function (c)
+            c.maximized_vertical = not c.maximized_vertical
+            c:raise()
+        end ,
+        {description = "(un)maximize vertically", group = "client"}),
+    awful.key({ modkey, "Shift"   }, "m",
+        function (c)
+            c.maximized_horizontal = not c.maximized_horizontal
+            c:raise()
+        end ,
+        {description = "(un)maximize horizontally", group = "client"})
 )
 
+-- @DOC_NUMBER_KEYBINDINGS@
 -- Bind all key numbers to tags.
--- Be careful: we use keycodes to make it works on any keyboard layout.
+-- Be careful: we use keycodes to make it work on any keyboard layout.
 -- This should map on the top row of your keyboard, usually 1 to 9.
 for i = 1, 9 do
-    globalkeys = awful.util.table.join(globalkeys,
+    globalkeys = gears.table.join(globalkeys,
         -- View tag only.
         awful.key({ modkey }, "#" .. i + 9,
                   function ()
@@ -387,7 +413,7 @@ for i = 1, 9 do
                         end
                   end,
                   {description = "view tag #"..i, group = "tag"}),
-        -- Toggle tag.
+        -- Toggle tag display.
         awful.key({ modkey, "Control" }, "#" .. i + 9,
                   function ()
                       local screen = awful.screen.focused()
@@ -422,7 +448,8 @@ for i = 1, 9 do
     )
 end
 
-clientbuttons = awful.util.table.join(
+-- @DOC_CLIENT_BUTTONS@
+clientbuttons = gears.table.join(
     awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
     awful.button({ modkey }, 1, awful.mouse.client.move),
     awful.button({ modkey }, 3, awful.mouse.client.resize))
@@ -433,7 +460,9 @@ root.keys(globalkeys)
 
 -- {{{ Rules
 -- Rules to apply to new clients (through the "manage" signal).
+-- @DOC_RULES@
 awful.rules.rules = {
+    -- @DOC_GLOBAL_RULE@
     -- All clients will match this rule.
     { rule = { },
       properties = { border_width = beautiful.border_width,
@@ -442,10 +471,12 @@ awful.rules.rules = {
                      raise = true,
                      keys = clientkeys,
                      buttons = clientbuttons,
+                     screen = awful.screen.preferred,
                      placement = awful.placement.no_overlap+awful.placement.no_offscreen
      }
     },
 
+    -- @DOC_FLOATING_RULE@
     -- Floating clients.
     { rule_any = {
         instance = {
@@ -460,6 +491,7 @@ awful.rules.rules = {
 	  "Spotify",
           "Sxiv",
           "Wpa_gui",
+	  "mpv",
           "pinentry",
           "veromix",
           "xtightvncviewer"},
@@ -473,6 +505,7 @@ awful.rules.rules = {
         }
       }, properties = { floating = true }},
 
+    -- @DOC_DIALOG_RULE@
     -- Add titlebars to normal clients and dialogs
     --{ rule_any = {type = { "normal", "dialog" }
     --  }, properties = { titlebars_enabled = true }
@@ -486,6 +519,7 @@ awful.rules.rules = {
 
 -- {{{ Signals
 -- Signal function to execute when a new client appears.
+-- @DOC_MANAGE_HOOK@
 client.connect_signal("manage", function (c)
     -- Set the windows at the slave,
     -- i.e. put it at the end of others instead of setting it master.
@@ -499,10 +533,11 @@ client.connect_signal("manage", function (c)
     end
 end)
 
+-- @DOC_TITLEBARS@
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)
     -- buttons for the titlebar
-    local buttons = awful.util.table.join(
+    local buttons = gears.table.join(
         awful.button({ }, 1, function()
             client.focus = c
             c:raise()
@@ -541,7 +576,7 @@ client.connect_signal("request::titlebars", function(c)
     }
 end)
 
--- Enable sloppy focus
+-- Enable sloppy focus, so that focus follows mouse.
 client.connect_signal("mouse::enter", function(c)
     if awful.layout.get(c.screen) ~= awful.layout.suit.magnifier
         and awful.client.focus.filter(c) then
@@ -549,6 +584,7 @@ client.connect_signal("mouse::enter", function(c)
     end
 end)
 
+-- @DOC_BORDER@
 client.connect_signal("focus", function(c) c.border_color = beautiful.border_focus end)
 client.connect_signal("unfocus", function(c) c.border_color = beautiful.border_normal end)
 -- }}}
