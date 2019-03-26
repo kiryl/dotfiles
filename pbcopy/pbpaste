@@ -1,3 +1,0 @@
-#!/bin/sh -efu
-
-socat UNIX-CLIENT:"$HOME/var/pbpaste" -
