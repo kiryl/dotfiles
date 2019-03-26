@@ -1,5 +1,5 @@
 XLock*font:		-xos4-terminus-medium-r-normal-*-14-*-*-*-*-*-iso10646-1
-XLock.mode:		loop
+XLock.mode:		blank
 
 URxvt.visualBell:	false
 URxvt.saveLines:	10000
