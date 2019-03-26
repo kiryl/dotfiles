@@ -20,3 +20,11 @@
 	coverletter = auto
 [pull]
 	ff = only
+	rebase = true
+[alias]
+	fixes = log -1 --abbrev=12 --pretty='Fixes: %h (\"%s\")'
+	log1 = log --oneline
+[rerere]
+	enabled = true
+[rebase]
+	autostash = true
