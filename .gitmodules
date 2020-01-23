@@ -1,0 +1,3 @@
+[submodule "awesome/nord"]
+	path = awesome/nord
+	url = git://github.com/hmix/awesome-wm-nord-theme
