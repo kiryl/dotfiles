@@ -16,7 +16,7 @@ SAVEHIST=1000000
 
 KEYTIMEOUT=20
 
-eval "$(dircolors ~/.zsh/misc/dircolors.256dark)"
+eval "$(dircolors ~/.zsh/misc/dircolors.nord)"
 
 PROMPT='%F{default}%m%f %F{blue}%10<…<%~%<<%f %F{blue}%1v%f-%F{white}%#%f '
 RPROMPT='%(?..%F{red}[%?] %f)$vcs_info_msg_0_'
