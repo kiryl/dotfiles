@@ -2,7 +2,7 @@ MAKEFLAGS += -rR --no-print-directory
 srctree := $(CURDIR)
 export srctree
 
-components ?= awesome fontconfig hg git proxy tmux top vim vimperator xsession zsh
+components ?= awesome fontconfig hg git proxy tmux top vim xsession zsh
 
 all: $(components)
 
