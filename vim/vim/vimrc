@@ -1,14 +1,12 @@
 " VIM-PLUG BLOCK {{{
 call plug#begin('~/.vim/plugged')
+
+" Rule them all
+Plug 'Shougo/denite.nvim'
+
 " Autocomplete
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-Plug 'zchee/deoplete-clang'
-
-" Required by deoplete on Vim
-if !has('nvim')
-	Plug 'roxma/vim-hug-neovim-rpc'
-	Plug 'roxma/nvim-yarp'
-endif
+Plug 'deoplete-plugins/deoplete-clang'
 
 " Compile
 Plug 'neomake/neomake'
@@ -19,20 +17,11 @@ Plug 'tpope/vim-surround'
 Plug 'tpope/vim-repeat'
 Plug 'tpope/vim-commentary'
 
-" GIT
-Plug 'tpope/vim-fugitive'
-Plug 'airblade/vim-gitgutter'
-
-" Fuzzy search
-Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-Plug 'junegunn/fzf.vim'
-
 " Window and buffer management
-Plug 'moll/vim-bbye'
 Plug 'troydm/zoomwintab.vim'
 
 " UI
-Plug 'iCyMind/NeoSolarized'
+Plug 'arcticicestudio/nord-vim'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 
@@ -141,8 +130,8 @@ set termguicolors
 
 " Change colorscheme
 set background=dark
-colorscheme NeoSolarized
-highlight ExtraWhitespace ctermbg=red guibg=red
+colorscheme nord
+"highlight ExtraWhitespace ctermbg=red guibg=red
 
 " Delete comment character when joining commented lines
 set formatoptions+=j
@@ -171,6 +160,9 @@ let g:c_syntax_for_h=1
 " Make netrw less annoying
 let g:netrw_silent=1
 
+" nvr as git editor
+let $GIT_EDITOR = 'nvr -cc split --remote-wait'
+
 " }}}
 
 " AUTOCMD {{{
@@ -191,14 +183,12 @@ autocmd BufRead,BufNewFile *linux*/*.[ch] source ~/.vim/ftplugin/c-linux.vim
 autocmd BufRead,BufNewFile *qemu*/*.[ch] source ~/.vim/ftplugin/c-qemu.vim
 autocmd BufRead,BufNewFile *notmuch*/*.{c,cc,h} source ~/.vim/ftplugin/c-notmuch.vim
 
-if has('nvim')
-	" Terminal scrollback size
-	autocmd TermOpen * setlocal scrollback=100000
+" Terminal scrollback size
+autocmd TermOpen * setlocal scrollback=100000
 
-	" Jump into/out terminal
-	autocmd BufEnter * if &buftype == 'terminal' | :startinsert | endif
-	autocmd BufLeave * if &buftype == 'terminal' | :stopinsert | endif
-endif
+" Jump into/out terminal
+autocmd BufEnter * if &buftype == 'terminal' | :startinsert | endif
+autocmd BufLeave * if &buftype == 'terminal' | :stopinsert | endif
 
 " }}}
 
@@ -214,23 +204,26 @@ nnoremap <Leader><Left> gT
 nnoremap <Leader><Right> gt
 nnoremap <A-m> :ZoomWinTabToggle<CR>
 nnoremap <A-CR> :vsplit +term<CR>
-nnoremap <A-Backspace> :Bdelete<CR>
 nnoremap <A-c> :close<CR>
 
-if has('nvim')
-	tnoremap <Leader><Esc> <C-\><C-n>
-	tnoremap <A-j> <C-\><C-n>^<C-w>w
-	tnoremap <A-k> <C-\><C-n>^<C-w>W
-	tnoremap <A-m> <C-\><C-n>:ZoomWinTabToggle<CR>i
-	tnoremap <A-CR> <C-\><C-n>:vsplit +term<CR>
-	tnoremap <A-Backspace> <C-\><C-n>:Bdelete!<CR>
-	tnoremap <A-c> <C-\><C-n>:close<CR>
-	tnoremap <Leader><Left> <C-\><C-n>gT
-	tnoremap <Leader><Right> <C-\><C-n>gt
-endif
+" Disable arrow keys completely
+noremap <Left> <Nop>
+noremap <Right> <Nop>
+noremap <Up> <Nop>
+noremap <Down> <Nop>
+imap <Up> <Nop>
+imap <Down> <Nop>
+imap <Left> <Nop>
+imap <Right> <Nop>
 
-cnoreabbrev <silent> wq w<bar>Bdelete
-cnoreabbrev <silent> q Bdelete
+tnoremap <Leader><Esc> <C-\><C-n>
+tnoremap <A-j> <C-\><C-n>^<C-w>w
+tnoremap <A-k> <C-\><C-n>^<C-w>W
+tnoremap <A-m> <C-\><C-n>:ZoomWinTabToggle<CR>i
+tnoremap <A-CR> <C-\><C-n>:vsplit +term<CR>
+tnoremap <A-c> <C-\><C-n>:close<CR>
+tnoremap <Leader><Left> <C-\><C-n>gT
+tnoremap <Leader><Right> <C-\><C-n>gt
 
 inoremap <silent><expr><Tab>	pumvisible() ? "\<Down>" : "\<Tab>"
 " deoplete#mappings#manual_complete()
@@ -262,8 +255,8 @@ inoremap <F12> <c-o>:call _My_toggle_deoplete()<CR>
 
 "----------------------------------------------------------------------
 " deoplete-clang
-let g:deoplete#sources#clang#libclang_path = "/usr/lib/llvm-3.8/lib/libclang.so"
-let g:deoplete#sources#clang#clang_header = "/usr/lib/clang/3.8/include"
+let g:deoplete#sources#clang#libclang_path = "/usr/lib/llvm/8/lib64/libclang.so"
+let g:deoplete#sources#clang#clang_header = "/usr/lib/clang/8.0.1/include"
 
 call deoplete#custom#source('clang', 'mark', '©')
 call deoplete#custom#source('clang', 'rank', 1000)
@@ -285,7 +278,7 @@ let g:neomake_info_sign = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
 
 let g:neomake_c_linux_maker = {
         \ 'exe': 'make',
-        \ 'args': ['O="/home/kas/var/linus"', '-j100', '%:r.o'],
+        \ 'args': ['O="/home/kas/var/linux"', '-j100', '%:r.s'],
         \ 'errorformat':
             \ '%f:%l:%c: %trror: %m,' .
             \ '%f:%l:%c: %tarning: %m,' .
@@ -344,21 +337,58 @@ nmap s <Plug>(easymotion-overwin-f2)
 let g:gitgutter_override_sign_column_highlight = 0
 
 "----------------------------------------------------------------------
-" FZF
-nnoremap <silent><Leader><Leader>	:Files<CR>
-nnoremap <silent><Leader><Enter>	:Buffers<CR>
-nnoremap <silent><Leader>c		:Commits<CR>
-nnoremap <silent><Leader>l		:Lines<CR>
-nnoremap <silent><Leader>ag		:Ag <C-R><C-W><CR>
-nnoremap <silent><Leader>AG		:Ag <C-R><C-A><CR>
-xnoremap <silent><Leader>ag		:Ag <C-R>"<CR>
-nnoremap <silent><Leader>gg		:GFiles<CR>
-nnoremap <silent><Leader>gG		:GGrep<CR>
+" Denite
+"
 
-" Command for git grep
-" - fzf#vim#grep(command, with_column, [options], [fullscreen])
-command! -bang -nargs=* GGrep
-  \ call fzf#vim#grep('git grep --line-number '.shellescape(<q-args>), 0, <bang>0)
+call denite#custom#option('_', {
+			\ 'highlight_matched_char': 'Underlined',
+			\ 'highlight_mode_normal': 'CursorLine',
+			\ 'max_dynamic_update_candidates': 200000,
+			\ 'prompt': '❯',
+			\ 'start_filter': 1,
+			\ 'winheight': 10,
+			\})
+
+autocmd FileType denite call s:denite_my_settings()
+function! s:denite_my_settings() abort
+	nnoremap <silent><buffer><expr> <CR>	denite#do_map('do_action')
+	nnoremap <silent><buffer><expr> d	denite#do_map('do_action', 'delete')
+	nnoremap <silent><buffer><expr> p	denite#do_map('do_action', 'preview')
+	nnoremap <silent><buffer><expr> <C-v>	denite#do_map('do_action', 'vsplit')
+	nnoremap <silent><buffer><expr> <Tab>	denite#do_map('choose_action')
+	nnoremap <silent><buffer><expr> <ESC>	denite#do_map('quit')
+	nnoremap <silent><buffer><expr> <Space>	denite#do_map('toggle_select')
+	nnoremap <silent><buffer><expr> i	denite#do_map('open_filter_buffer')
+endfunction
+
+autocmd FileType denite-filter call s:denite_filter_settings()
+function s:denite_filter_settings() abort
+	call deoplete#custom#buffer_option('auto_complete', v:false)
+
+	inoremap <silent><buffer> <CR>		<ESC><C-w>p:call denite#call_map('do_action')<CR>
+	inoremap <silent><buffer> <Esc>		<Esc><C-w>p<CR>
+	inoremap <silent><buffer> <Tab>		<Esc><C-w>p:call denite#call_map('choose_action')<CR>
+
+	inoremap <silent><buffer> <C-j>		<Esc><C-w>p:call cursor(line('.')+1,0)<CR><C-w>pA
+	inoremap <silent><buffer> <C-k>		<Esc><C-w>p:call cursor(line('.')-1,0)<CR><C-w>pA
+	inoremap <silent><buffer> <C-v>		<Esc><C-w>p:call denite#call_map('do_action', 'vsplit')<CR>
+endfunction
+
+call denite#custom#source('file/rec', 'matchers', [
+        \ 'matcher/hide_hidden_files',
+        \ 'matcher/fuzzy',
+        \ 'matcher/project_files'
+    \])
+
+call denite#custom#source('file/rec', 'sorters', [ 'sorter/rank' ])
+
+nnoremap <silent><Leader><Leader>	:Denite buffer file/rec<CR>
+nnoremap <silent><Leader><Enter>	:Denite buffer<CR>
+nnoremap <silent><Leader>p		:Denite file/point<CR>
+nnoremap <silent><Leader>l		:Denite line<CR>
+nnoremap <silent><Leader>t		:Denite tag<CR>
+nnoremap <silent><leader>/		:Denite grep:.<CR>
+nnoremap <silent><leader>*		:DeniteCursorWord grep:. -mode=normal<CR>
 
 "----------------------------------------------------------------------
 " airline
