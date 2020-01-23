@@ -1,2 +1,2 @@
 destdir	:= .config/awesome
-files	:= rc.lua theme.lua xrandr.lua
+files	:= nord rc.lua theme.lua xrandr.lua

@@ -181,7 +181,7 @@ vicious.register(myvolwidget, vicious.widgets.volume, ' $2$1', 0.2, 'PCM')
 -- @DOC_FOR_EACH_SCREEN@
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
-    gears.wallpaper.set(gears.color.create_solid_pattern("#00000000"))
+    gears.wallpaper.set(gears.color.create_solid_pattern("#4c566a"))
 
     if screen[s].geometry.width >= 1920 then
 	    nmaster = 3
