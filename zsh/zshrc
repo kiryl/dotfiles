@@ -1,5 +1,8 @@
 alias ls='ls --color=auto'
 alias gdb='gdb -q'
+alias vim='nvim'
+alias mutt='neomutt'
+alias sudo='sudo '
 
 autoload -Uz add-zsh-hook
 autoload -Uz colors; colors
