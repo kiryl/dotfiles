@@ -1,6 +1,6 @@
-export CVSEDITOR=vim
-export EDITOR=vim
-export VISUAL=vim
+export CVSEDITOR=nvim
+export EDITOR=nvim
+export VISUAL=nvim
 export GOPATH=~/opt/go
 
 typeset -U fpath
