@@ -20,5 +20,6 @@
 
 - clean:
     ~/:
+    ~/bin:
     ~/.config:
       recursive: true
