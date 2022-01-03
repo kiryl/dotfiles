@@ -12,9 +12,10 @@
     ~/.signature:
     ~/.tmux.conf:
     ~/.toprc:
-    ~/.zshrc: zsh/zshrc
-    ~/.zshenv: zsh/zshenv
+    ~/.zprofile: zsh/zprofile
     ~/.zsh: zsh/zsh
+    ~/.zshenv: zsh/zshenv
+    ~/.zshrc: zsh/zshrc
     ~/bin/proxy:
 
 - clean:
