@@ -1,0 +1,33 @@
+#!/bin/env ruby
+
+require 'ipaddr'
+require 'resolv'
+
+socks_proxy="proxy-ir.intel.com"
+socks_proxy_port="1080"
+
+addr = ARGV.shift
+port = ARGV.shift
+
+def noproxy(addr, port)
+  exec "socat", "STDIO", "TCP:#{addr}:#{port}"
+end
+
+begin
+  Resolv.getaddress socks_proxy
+rescue Resolv::ResolvError
+  noproxy(addr, port)
+end
+
+ip = nil
+
+Resolv::DNS.open do |dns|
+  ress = dns.getresources(addr, Resolv::DNS::Resource::IN::A)
+  ip = IPAddr.new(ress.first.address.to_s)
+end
+
+["127.0.0.0/8", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"].each { |s|
+  noproxy(addr, port) if IPAddr.new(s).include?(ip)
+}
+
+exec "socat", "-t", "10", "STDIO", "SOCKS:#{socks_proxy}:#{addr}:#{port},socksport=#{socks_proxy_port}"

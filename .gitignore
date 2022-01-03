@@ -1,4 +1,2 @@
-vim/vim/.*
-vim/vim/plugged/
-vim/vim/autoload/plug.vim.old
 proxy/resolve
+nvim/plugin

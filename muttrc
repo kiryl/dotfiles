@@ -1,0 +1,82 @@
+set edit_headers
+set mbox_type=Maildir
+set folder="~/mail"
+set from="Kirill A. Shutemov <kirill@shutemov.name>"
+set include=yes
+set index_format='%4C %Z %[%y.%m.%d] %-18.18n  %s%>'
+set mime_forward
+set nm_default_uri="notmuch:///home/kas/mail"
+set hidden_tags="unread,flagged"
+set nm_query_type="threads"
+set pager_format="-%Z- %C/%m: %-20.20n   %s%*  -- %?g?(%g)? - (%P)"
+set pager_index_lines=15
+set record="+sent"
+set sort_browser=unsorted
+set sort=threads
+set vfolder_format="%?N?*& ?%20f %6N %10n"
+set folder_format="%20i %10n"
+set virtual_spoolfile=yes
+
+alternative_order text/plain text/html
+auto_view text/html
+
+set rfc2047_parameters=yes
+
+bind	browser <right>	select-entry
+bind	browser <left>	noop
+
+bind	index <right>	display-message
+macro	index <left>	"<sync-mailbox><change-vfolder>?"
+bind	index X		vfolder-from-query
+macro	index I		"<shell-escape>notmuch new<enter><sync-mailbox>"
+macro	index F         "<modify-labels>+followed<enter><sync-mailbox>"
+bind	index +		entire-thread
+
+bind	pager <up>	previous-line
+bind	pager <down>	next-line
+bind	pager <left>	exit
+bind	pager <right>	view-attachments
+bind	pager X		vfolder-from-query
+macro	pager I		"<shell-escape>notmuch new<enter><sync-mailbox>"
+bind	pager +		entire-thread
+
+bind attach <left>	exit
+bind attach <right>	view-attach
+
+source ~/.mutt.colors
+
+ignore		*
+unignore	from date subject to cc
+unignore	list-id message-id in-reply-to
+
+tag-transforms \
+	"replied"	"⮮" \
+	"sent"		"⮭" \
+	"attachment"	"⎘" \
+	"signed"	"✓" \
+	#
+
+tag-formats \
+	"unread"	"GU" \
+	"replied"	"GR" \
+	"sent"		"GS" \
+	#
+
+virtual-mailboxes \
+	"inbox"			"notmuch://?query=query:inbox" \
+	"followed"		"notmuch://?query=query:followed" \
+	"linux/mm"		"notmuch://?query=query:linux/mm" \
+	"linux/thp"		"notmuch://?query=query:linux/thp" \
+	"people/akpm"		"notmuch://?query=query:people/akpm" \
+	"people/hugh"		"notmuch://?query=query:people/hugh" \
+	"people/linus"		"notmuch://?query=query:people/linus" \
+	"people/viro"		"notmuch://?query=query:people/viro" \
+	"linux/mm/commits"	"notmuch://?query=query:linux/mm/commits" \
+	"linux/coco"		"notmuch://?query=query:linux/coco" \
+	"linux/fs"		"notmuch://?query=query:linux/fs" \
+	"linux/api"		"notmuch://?query=query:linux/api" \
+	"linuxfoundation"	"notmuch://?query=query:linuxfoundation" \
+	"kernel.org"		"notmuch://?query=query:kernel.org" \
+	"alt"			"notmuch://?query=query:alt" \
+	"unread"		"notmuch://?query=query:unread" \
+	#

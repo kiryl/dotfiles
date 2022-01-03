@@ -1,8 +1,0 @@
-#!/bin/sh -eu
-
-target=$(readlink -ev "$1" 2>/dev/null)
-link=$2
-
-[ -L "$link" -a "$(readlink -ev "$link" 2>/dev/null)" = "$target" ] && exit 0 ||:
-
-ln -sTv "$target" "$link"

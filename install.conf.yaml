@@ -1,0 +1,22 @@
+- link:
+    ~/.Xresources:
+    ~/.config/fontconfig/fonts.conf:
+    ~/.config/nvim:
+    ~/.dovecot.sieve:
+    ~/.gitconfig:
+    ~/.hgrc:
+    ~/.mutt.colors:
+    ~/.muttrc:
+    ~/.notmuch-config:
+    ~/.signature:
+    ~/.tmux.conf:
+    ~/.toprc:
+    ~/.zshrc: zsh/zshrc
+    ~/.zshenv: zsh/zshenv
+    ~/.zsh: zsh/zsh
+    ~/bin/proxy:
+
+- clean:
+    ~/:
+    ~/.config:
+      recursive: true

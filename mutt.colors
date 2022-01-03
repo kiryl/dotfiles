@@ -76,5 +76,5 @@ color index brightcyan default '~G' # PGP
 color index green default '~Q' # replied
 color index brightred default '~F' # flagged
 #color index brightred default '~h "Importance: High"'
-color index white default '~N' # new
+color index brightwhite default '~N' # new
 color index red default '~D' # deleted
