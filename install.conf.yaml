@@ -3,6 +3,7 @@
     ~/.config/fontconfig/fonts.conf:
     ~/.config/nvim:
     ~/.dovecot.sieve:
+    ~/.gdbinit:
     ~/.gitconfig:
     ~/.hgrc:
     ~/.mutt.colors:
