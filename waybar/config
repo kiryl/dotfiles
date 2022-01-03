@@ -1,0 +1,55 @@
+{
+    "height": 30,
+    "modules-left": ["sway/workspaces", "sway/mode"],
+    "modules-center": ["sway/window"],
+    "modules-right": ["idle_inhibitor", "custom/alsa", "cpu", "memory", "temperature", "sway/language", "clock", "tray"],
+    "sway/workspaces": {
+        "all-outputs": true,
+        "format": "{icon}",
+        "format-icons": {
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+            "urgent": "",
+        }
+    },
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+    "idle_inhibitor": {
+        "format": "{icon}",
+        "format-icons": {
+            "activated": "",
+            "deactivated": ""
+        }
+    },
+    "tray": {
+        "icon-size": 28,
+        "spacing": 10
+    },
+    "clock": {
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><big>{calendar}</big></tt>",
+	"format": "{:%a, %Y-%m-%d %H:%M}"
+    },
+    "cpu": {
+        "format": "{usage}% ",
+        "tooltip": false
+    },
+    "memory": {
+        "format": "{}% "
+    },
+    "temperature": {
+        "critical-threshold": 80,
+        "format": "{temperatureC}°C ",
+    },
+    "custom/alsa": {
+	"xexec": "while true; do amixer get PCM | sed -nre 's/.*\\[off\\].*/ muted/p; s/.*\\[(.*%)\\].*/  \\1/p'; stdbuf -oL alsactl monitor | read; done",
+	"exec": "amixer get PCM | sed -nre 's/.*\\[off\\].*/ muted/p; s/.*\\[(.*%)\\].*/  \\1/p'",
+        "on-click": "amixer -q set PCM toggle",
+        "on-scroll-up": "amixer -q set PCM 5%+",
+        "on-scroll-down": "amixer -q set PCM 5%-",
+        "tooltip": false,
+	"interval": 1
+    }
+}

@@ -17,6 +17,9 @@
     ~/.zshenv: zsh/zshenv
     ~/.zshrc: zsh/zshrc
     ~/bin/proxy:
+    ~/.config/sway:
+    ~/.config/swaylock:
+    ~/.config/waybar:
 
 - clean:
     ~/:
