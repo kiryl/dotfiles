@@ -1,32 +1,37 @@
-map = vim.api.nvim_set_keymap
-
 -- Remove search highlight and re-evaluate syntax highlighting
-map('n', '<c-l>', ':nohlsearch<cr>:diffupdate<cr>:syntax sync fromstart<cr><c-l>', { noremap = true })
+vim.keymap.set('n', '<c-l>', ':nohlsearch<cr>:diffupdate<cr>:syntax sync fromstart<cr><c-l>', { noremap = true })
 
 -- Automatically send mouse selection to clipboard (workaround for Neovim #2325)
-map('v', '<LeftRelease>', '"*ygv', { noremap = true })
+vim.keymap.set('v', '<LeftRelease>', '"*ygv', { noremap = true })
 
 -- Navigate windows
-map('n', '<A-j>', '<C-w>w', { noremap = true })
-map('n', '<A-k>', '<C-w>W', { noremap = true })
-map('n', '<Leader><Left>', 'gT', { noremap = true })
-map('n', '<Leader><Right>', 'gt', { noremap = true })
-map('n', '<A-m>', ':ZoomWinTabToggle<CR>', { noremap = true })
+vim.keymap.set('n', '<A-h>', '<C-w>h', { noremap = true })
+vim.keymap.set('n', '<A-j>', '<C-w>j', { noremap = true })
+vim.keymap.set('n', '<A-k>', '<C-w>k', { noremap = true })
+vim.keymap.set('n', '<A-l>', '<C-w>l', { noremap = true })
+vim.keymap.set('t', '<A-h>', '<C-\\><C-N><C-w>h', { noremap = true })
+vim.keymap.set('t', '<A-j>', '<C-\\><C-N><C-w>j', { noremap = true })
+vim.keymap.set('t', '<A-k>', '<C-\\><C-N><C-w>k', { noremap = true })
+vim.keymap.set('t', '<A-l>', '<C-\\><C-N><C-w>l', { noremap = true })
 
 -- Disable arrow keys completely
-map('', '<Left>', '<Nop>', { noremap = true })
-map('', '<Right>', '<Nop>', { noremap = true })
-map('', '<Up>', '<Nop>', { noremap = true })
-map('', '<Down>', '<Nop>', { noremap = true })
-map('i', '<Left>', '<Nop>', { noremap = true })
-map('i', '<Right>', '<Nop>', { noremap = true })
-map('i', '<Up>', '<Nop>', { noremap = true })
-map('i', '<Down>', '<Nop>', { noremap = true })
+vim.keymap.set('', '<Left>', '<Nop>', { noremap = true })
+vim.keymap.set('', '<Right>', '<Nop>', { noremap = true })
+vim.keymap.set('', '<Up>', '<Nop>', { noremap = true })
+vim.keymap.set('', '<Down>', '<Nop>', { noremap = true })
+vim.keymap.set('i', '<Left>', '<Nop>', { noremap = true })
+vim.keymap.set('i', '<Right>', '<Nop>', { noremap = true })
+vim.keymap.set('i', '<Up>', '<Nop>', { noremap = true })
+vim.keymap.set('i', '<Down>', '<Nop>', { noremap = true })
 
--- Telescope
-map('n', '<Leader><Leader>', '<cmd>lua require("telescope.builtin").find_files()<cr>', { noremap = true })
-map('n', '<Leader>g', '<cmd>lua require("telescope.builtin").live_grep()<cr>', { noremap = true })
-map('n', '<Leader>b', '<cmd>lua require("telescope.builtin").buffers()<cr>', { noremap = true })
-map('n', '<Leader>h', '<cmd>lua require("telescope.builtin").help_tags()<cr>', { noremap = true })
+-- Move selected text
+vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
+vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
-map('n', 'z=', '<cmd>lua require("telescope.builtin").spell_suggest()<cr>', { noremap = true })
+-- Keep cursor in the middle
+vim.keymap.set("n", "<C-d>", "<C-d>zz")
+vim.keymap.set("n", "<C-u>", "<C-u>zz")
+vim.keymap.set("n", "n", "nzzzv")
+vim.keymap.set("n", "N", "Nzzzv")
+
+vim.keymap.set('t', '<Esc>', '<C-\\><C-n>')

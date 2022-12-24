@@ -5,7 +5,7 @@ vim.o.smartindent = true
 vim.o.relativenumber = true
 vim.o.number = true
 
--- Display signs in the number columnt
+-- Display signs in the number column
 vim.o.signcolumn = 'number'
 
 -- highlight current line
@@ -22,7 +22,10 @@ vim.o.smartcase = true
 vim.o.wildmode = 'longest,full'
 
 -- A better completion experience
-vim.o.completeopt = 'menu,menuone,noselect'
+vim.o.completeopt = 'menu,menuone,noinsert,noselect'
+
+-- Max height for completion list
+vim.o.pumheight = 30
 
 -- Do not redraw while running macros (much faster)
 vim.o.lazyredraw = true
@@ -86,3 +89,11 @@ vim.g.mapleader = ' '
 
 -- .h files are C, not C++
 vim.g.c_syntax_for_h = true
+
+-- Enable spelling by default
+vim.o.spell = true
+
+vim.o.laststatus = 3
+
+-- vim-better-whitespace
+vim.g.show_spaces_that_precede_tabs = true
